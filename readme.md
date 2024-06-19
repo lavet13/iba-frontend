@@ -50,12 +50,9 @@ to bundle CSS into JS file.
 
 ## Planning:
 - Cursor should have been used as createdAt instead of id
-- Sort posts with ascending or descending order
-
-## Incomplete:
-- refresh token and access token
+- Disable retry only for specific status code
+- Refresh token and access token
 - Invalidation and optimistic updates using useMutation
-- File upload(graphql?? express??)
 - Query Key Factory
 
 <!-- This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules. -->
