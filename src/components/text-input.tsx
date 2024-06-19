@@ -36,7 +36,7 @@ const TextInput: FC<TextInputProps> = memo(
             isRequired={props.isRequired}
             isInvalid={!!meta.error && meta.touched}
           >
-            <FormLabel id={props.id || name} htmlFor={props.id || name}>
+            <FormLabel htmlFor={props.id || name}>
               {label}
             </FormLabel>
             <Input

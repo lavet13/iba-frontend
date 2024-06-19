@@ -73,7 +73,9 @@ const Header: FC = () => {
           }}
           variant='ghost'
           size={['md', null, 'sm']}
-        >Wildberries</Button>,
+        >
+          Wildberries
+        </Button>,
         !getMeResult?.me ? (
           <Button
             isLoading={getMePending || isRefetching}
@@ -94,7 +96,13 @@ const Header: FC = () => {
 
   let content = (
     <Flex pt='1.5' align={'center'} minH={'58px'}>
-      <Button variant='link' onClick={() => navigate('/')}>
+      <Button
+        variant='link'
+        onClick={() => {
+          navigate('/');
+          onClose();
+        }}
+      >
         Лого
       </Button>
       <Spacer />

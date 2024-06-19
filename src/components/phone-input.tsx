@@ -38,8 +38,10 @@ const PhoneInput: FC<PhoneInputProps> = memo(({ name, label, onChange, value, ..
           >
             <FormLabel htmlFor={props.id || name}>{label}</FormLabel>
             <PhoneInputWithCountrySelect
+              countries={['RU']}
               international
               labels={ru}
+              countryCallingCodeEditable={false}
               defaultCountry={'RU'}
               value={value || ''}
               onChange={handleChange}

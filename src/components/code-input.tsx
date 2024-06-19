@@ -24,7 +24,6 @@ const CodeInput: FC<CodeInputProps> = memo(({ name, label, ...props }) => {
         meta,
         form: { setFieldValue },
       }: FastFieldProps) => {
-        console.log({ value });
         const handleChange = (value: string) => {
           setFieldValue(name, value ?? '');
         };
@@ -35,7 +34,7 @@ const CodeInput: FC<CodeInputProps> = memo(({ name, label, ...props }) => {
             <HStack>
               <PinInput
                 id={props.id || name}
-                size={['sm', 'md', 'lg']}
+                size={['md', null, 'lg']}
                 onChange={handleChange}
                 value={value ?? ''}
                 {...props}

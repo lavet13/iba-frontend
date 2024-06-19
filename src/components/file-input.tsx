@@ -11,6 +11,7 @@ import {
   InputProps,
   InputRightElement,
   Icon,
+  IconButton,
 } from '@chakra-ui/react';
 import { ConsoleLog } from '../utils/debug/console-log';
 import { HiOutlinePaperClip } from 'react-icons/hi';
@@ -92,7 +93,7 @@ const FileInput: FC<FileInputProps> = memo(
                     onClick: handleInputClick,
                   }}
                 />
-                <InputRightElement>
+                <InputRightElement pointerEvents={'none'}>
                   <Icon as={HiOutlinePaperClip} boxSize={5} />
                 </InputRightElement>
               </InputGroup>
@@ -107,8 +108,8 @@ const FileInput: FC<FileInputProps> = memo(
 
 const getShortFileName = (fileName: string, maxLength: number) => {
   const lastDotIndex = fileName.lastIndexOf('.');
-  const extension = fileName.slice(fileName.lastIndexOf('.'));
-  const name = fileName.slice(0, fileName.lastIndexOf('.'));
+  const extension = fileName.slice(lastDotIndex);
+  const name = fileName.slice(0, lastDotIndex);
   const totalLength = name.length + extension.length + 1;
 
   if (totalLength <= maxLength) {
