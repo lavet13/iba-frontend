@@ -35,7 +35,7 @@ const WbOrder: FC = () => {
   const toast = useToast();
   const toastIdRef = useRef<ToastId | null>(null);
   const { isClient, key } = useIsClient();
-  const { data } = useWbOrderById('24');
+  const { data } = useWbOrderById('8');
   console.log({ data });
 
   const Schema = z.object({

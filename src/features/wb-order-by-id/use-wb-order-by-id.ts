@@ -7,7 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 
 export const useWbOrderById = (id: string, options?: InitialDataOptions<WbOrderByIdQuery>) => {
   const wbOrderById = graphql(`
-    query WbOrderById($id: ID!) {
+    query WbOrderById($id: BigInt!) {
       wbOrderById(id: $id) {
         id
         name
