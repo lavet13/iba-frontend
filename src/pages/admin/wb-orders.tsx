@@ -12,80 +12,34 @@ import {
   Th,
   Thead,
   Tr,
+  Tooltip,
+  Spinner,
 } from '@chakra-ui/react';
-import { formatDistanceToNow } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { FC, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { useWbOrders } from '../../features/wb-orders';
-import { parseIntSafe } from '../../utils/helpers/parse-int-safe';
+import { FC, Fragment } from 'react';
+import { useInfiniteWbOrders } from '../../features/wb-orders';
+import { Waypoint } from 'react-waypoint';
 
 const WbOrders: FC = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const before = searchParams.get('before') ?? null;
-  const after = searchParams.get('after') ?? null;
-
   const {
-    data: wbOrdersResult,
-    error,
-    isPending,
-    refetch: refetchWbOrders,
-  } = useWbOrders(
-    { take: 2, after: parseIntSafe(after!), before: parseIntSafe(before!) },
-    {
-      meta: {
-        toastEnabled: false,
-      },
-    }
-  );
-  console.log({ wbOrdersResult });
+    data: infWbOrdersResult,
+    error: infWbOrdersError,
+    isError: isInfWbOrdersError,
+    fetchNextPage: fetchNextInfPage,
+    hasNextPage: hasNextInfPage,
+    isPending: isPendingInfinite,
+    isFetching: isFetchingInfinite,
+    isFetchingNextPage,
+  } = useInfiniteWbOrders({ take: 4 });
 
-  useEffect(() => {
-    if (wbOrdersResult?.wbOrders.edges.length === 0) {
-      setSearchParams(params => {
-        const query = new URLSearchParams(params.toString());
-
-        query.delete('after');
-        query.delete('before');
-
-        return query;
-      });
-    }
-  }, [wbOrdersResult]);
-
-  const fetchNextPage = () => {
-    if (wbOrdersResult?.wbOrders.pageInfo.hasNextPage) {
-      setSearchParams(params => {
-        const query = new URLSearchParams(params.toString());
-
-        query.set('after', `${wbOrdersResult.wbOrders.pageInfo.endCursor}`);
-        query.delete('before');
-
-        return query;
-      });
-    }
-  };
-
-  const fetchPreviousPage = () => {
-    if (wbOrdersResult?.wbOrders.pageInfo.hasPreviousPage) {
-      setSearchParams(params => {
-        const query = new URLSearchParams(params.toString());
-
-        query.set('before', `${wbOrdersResult.wbOrders.pageInfo.startCursor}`);
-        query.delete('after');
-
-        return query;
-      });
-    }
-  };
-
-  if (error) {
-    throw error;
+  if (isInfWbOrdersError) {
+    throw infWbOrdersError;
   }
 
   return (
     <>
-      {isPending ? (
+      {isPendingInfinite ? (
         <TableContainer>
           <Table variant='simple' size='sm'>
             <Thead>
@@ -115,7 +69,7 @@ const WbOrders: FC = () => {
                     <Skeleton height='20px' />
                   </Td>
                   <Td>
-                    <Skeleton height='20px' />
+                    <Skeleton height='65px' />
                   </Td>
                   <Td isNumeric>
                     <Skeleton height='20px' />
@@ -137,7 +91,7 @@ const WbOrders: FC = () => {
             </Tbody>
           </Table>
         </TableContainer>
-      ) : wbOrdersResult.wbOrders.edges.length !== 0 ? (
+      ) : (
         <TableContainer>
           <Table variant='simple' size='sm'>
             <Thead>
@@ -155,47 +109,81 @@ const WbOrders: FC = () => {
             </Thead>
 
             <Tbody>
-              {wbOrdersResult.wbOrders.edges.map(o => (
-                <Tr key={o.id}>
-                  <Td isNumeric>{o.id}</Td>
-                  <Td>{o.name}</Td>
-                  <Td>{o.phone}</Td>
-                  <Td>
-                    <Image
-                      width='130px'
-                      src={`${import.meta.env.VITE_API_URI}/assets/qr-codes/${
-                        o.qrCode
-                      }`}
-                      fallbackSrc='https://via.placeholder.com/133'
-                      alt='qr-code'
+              {infWbOrdersResult.pages.map((group, i, arrGroup) => (
+                <Fragment key={i}>
+                  {group.wbOrders.edges.map(o => (
+                    <Tr key={o.id}>
+                      <Td isNumeric>{o.id}</Td>
+                      <Td>{o.name}</Td>
+                      <Td>{o.phone}</Td>
+                      <Td>
+                        <Image
+                          width='130px'
+                          src={`${
+                            import.meta.env.VITE_API_URI
+                          }/assets/qr-codes/${o.qrCode}`}
+                          fallbackSrc='https://via.placeholder.com/133'
+                          alt='qr-code'
+                        />
+                      </Td>
+                      <Td isNumeric>{o.orderCode}</Td>
+                      <Td>{o.wbPhone}</Td>
+                      <Td>{o.status}</Td>
+                      <Td>
+                        <Tooltip
+                          label={format(
+                            new Date(o.createdAt),
+                            'dd.MM.yyyy, HH:mm:ss',
+                            {
+                              locale: ru,
+                            }
+                          )}
+                        >
+                          {formatDistanceToNow(new Date(o.createdAt), {
+                            addSuffix: true,
+                            locale: ru,
+                            includeSeconds: true,
+                          })}
+                        </Tooltip>
+                      </Td>
+                      <Td>
+                        <Tooltip
+                          label={format(
+                            new Date(o.updatedAt),
+                            'dd.MM.yyyy, HH:mm:ss',
+                            {
+                              locale: ru,
+                            }
+                          )}
+                        >
+                          {formatDistanceToNow(new Date(o.updatedAt), {
+                            addSuffix: true,
+                            locale: ru,
+                            includeSeconds: true,
+                          })}
+                        </Tooltip>
+                      </Td>
+                    </Tr>
+                  ))}
+                  {i === arrGroup.length - 1 && (
+                    <Waypoint
+                      onEnter={() =>
+                        !isFetchingInfinite &&
+                        hasNextInfPage &&
+                        fetchNextInfPage()
+                      }
                     />
-                  </Td>
-                  <Td isNumeric>{o.orderCode}</Td>
-                  <Td>{o.wbPhone}</Td>
-                  <Td>{o.status}</Td>
-                  <Td>
-                    {formatDistanceToNow(new Date(o.createdAt), {
-                      addSuffix: true,
-                      locale: ru,
-                      includeSeconds: true,
-                    })}
-                  </Td>
-                  <Td>
-                    {formatDistanceToNow(new Date(o.updatedAt), {
-                      addSuffix: true,
-                      locale: ru,
-                      includeSeconds: true,
-                    })}
-                  </Td>
-                </Tr>
+                  )}
+                </Fragment>
               ))}
             </Tbody>
           </Table>
+          {isFetchingNextPage && (
+            <Center>
+              <Spinner />
+            </Center>
+          )}
         </TableContainer>
-      ) : (
-        <Center>
-          <Heading>Нет данных :(</Heading>
-        </Center>
       )}
     </>
   );
