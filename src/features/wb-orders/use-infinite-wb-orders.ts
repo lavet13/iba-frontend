@@ -4,16 +4,12 @@ import client from '../../graphql-client';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { InitialDataInfiniteOptions } from '../../utils/graphql/initial-data-infinite-options';
 
-type UseInfiniteWbOrdersProps = {
-  take?: number;
-};
-
 type TPageParam = {
   after: number | null;
 };
 
 export const useInfiniteWbOrders = (
-  { take = 30 }: UseInfiniteWbOrdersProps,
+  take = 30,
   options?: InitialDataInfiniteOptions<WbOrdersQuery, TPageParam>
 ) => {
   const wbOrders = graphql(`
@@ -47,7 +43,6 @@ export const useInfiniteWbOrders = (
       return client.request(wbOrders, { input: { take, after: pageParam.after } });
     },
     getNextPageParam: (lastPage) => {
-      console.log({ lastPage });
       return lastPage.wbOrders.pageInfo.hasNextPage
         ? { after: lastPage.wbOrders.pageInfo.endCursor }
         : undefined;

@@ -67,18 +67,18 @@ const AccountMenu: FC<AccountMenuProps> = ({ onClose }) => {
         Аккаунт
       </MenuButton>
       <MenuList>
+        {/* <MenuGroup> */}
+        {/* </MenuGroup> */}
+        {/* <MenuDivider /> */}
         <MenuGroup>
-        </MenuGroup>
-        <MenuDivider />
-        <MenuGroup>
-          <MenuItem
-            onClick={() => {
-              navigate('/settings');
-              onClose();
-            }}
-          >
-            Настройки
-          </MenuItem>
+          {/* <MenuItem */}
+          {/*   onClick={() => { */}
+          {/*     navigate('/settings'); */}
+          {/*     onClose(); */}
+          {/*   }} */}
+          {/* > */}
+          {/*   Настройки */}
+          {/* </MenuItem> */}
           <MenuItem
             onClick={async () => {
               try {

@@ -12,6 +12,7 @@ import {
   useTheme,
   Icon,
   SimpleGrid,
+  Box,
 } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 import { FC } from 'react';
@@ -66,6 +67,19 @@ const Header: FC = () => {
   const buttons = getMePending
     ? []
     : [
+        getMeResult?.me && getMeResult.me.role === 'ADMIN' && (
+          <Button
+            onClick={() => {
+              navigate('/admin/wb-orders');
+              onClose();
+            }}
+            variant='ghost'
+            size={['md', null, 'sm']}
+            colorScheme='red'
+          >
+            Заявки WB
+          </Button>
+        ),
         <Button
           onClick={() => {
             navigate('/wb-order');
@@ -76,69 +90,60 @@ const Header: FC = () => {
         >
           Wildberries
         </Button>,
-        !getMeResult?.me ? (
-          <Button
-            isLoading={getMePending || isRefetching}
-            isDisabled={getMePending || isRefetching}
-            onClick={() => {
-              navigate('/login');
-              onClose();
-            }}
-            variant='solid'
-            size={['md']}
-          >
-            Войти
-          </Button>
-        ) : (
+        getMeResult?.me && (
           <AccountMenu onClose={onClose} />
-        ),
+        )
       ].filter(Boolean);
 
   let content = (
-    <Flex pt='1.5' align={'center'} minH={'58px'}>
-      <Button
-        variant='link'
-        onClick={() => {
-          navigate('/');
-          onClose();
-        }}
-      >
-        Лого
-      </Button>
-      <Spacer />
-      {isLargerThanMd ? (
-        <ButtonGroup alignItems='center' gap='2'>
-          {buttons.map((button, idx) => (
-            <Fragment key={idx}>{button}</Fragment>
-          ))}
-        </ButtonGroup>
-      ) : (
-        <>
-          {!isOpen ? (
-            <IconButton
-              size='sm'
-              variant='outline'
-              icon={<Icon as={HiMenu} boxSize={5} />}
-              aria-label={'Open menu'}
-              onClick={onOpen}
-            />
-          ) : (
-            <CloseButton onClick={onClose} size='md' />
-          )}
-        </>
-      )}
-    </Flex>
+    <Container>
+      <Flex pt='1.5' align={'center'} minH={'58px'} overflow='auto'>
+        <Button
+          variant='link'
+          onClick={() => {
+            navigate('/');
+            onClose();
+          }}
+        >
+          Главная
+        </Button>
+        <Spacer />
+        {isLargerThanMd ? (
+          <ButtonGroup alignItems='center' gap='2'>
+            {buttons.map((button, idx) => (
+              <Fragment key={idx}>{button}</Fragment>
+            ))}
+          </ButtonGroup>
+        ) : (
+          <>
+            {!isOpen ? (
+              <IconButton
+                size='sm'
+                variant='outline'
+                icon={<Icon as={HiMenu} boxSize={5} />}
+                aria-label={'Open menu'}
+                onClick={onOpen}
+              />
+            ) : (
+              <CloseButton onClick={onClose} size='md' />
+            )}
+          </>
+        )}
+      </Flex>
+    </Container>
   );
 
   return (
-    <Container mb='5' minH={isNotLargerAndIsOpen ? '100vh' : 'auto'}>
+    <Box w='full' minH={isNotLargerAndIsOpen ? '100vh' : 'auto'}>
       {isNotLargerAndIsOpen ? (
-        <Flex direction='column' gap='4'>
+        <Flex direction='column' gap='4' h={'100vh'}>
           {content}
           <SimpleGrid
+            px={2}
             alignItems={'center'}
             spacing={'20px'}
             minChildWidth={'200px'}
+            overflow='auto'
           >
             {buttons.map((button, idx) => (
               <Fragment key={idx}>{button}</Fragment>
@@ -148,7 +153,7 @@ const Header: FC = () => {
       ) : (
         content
       )}
-    </Container>
+    </Box>
   );
 };
 

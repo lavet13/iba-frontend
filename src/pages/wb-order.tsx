@@ -16,7 +16,6 @@ import TextInput from '../components/text-input';
 import { ConsoleLog } from '../utils/debug/console-log';
 import { isPossiblePhoneNumber } from 'react-phone-number-input';
 import CodeInput from '../components/code-input';
-import { isMobile } from 'react-device-detect';
 import { MutationSaveWbOrderArgs } from '../gql/graphql';
 import { useCreateWbOrder, useWbOrderById } from '../features/wb-order-by-id';
 import { isGraphQLRequestError } from '../utils/graphql/is-graphql-request-error';
@@ -38,70 +37,72 @@ const WbOrder: FC = () => {
   const { data } = useWbOrderById('8');
   console.log({ data });
 
-  const Schema = z.object({
-    FLP: z
-      .string({ required_error: 'ФИО обязательно к заполнению!' })
-      .refine(value => {
-        const parts = value.trim().split(/\s+/);
-        const namePattern = /^[a-zа-я]+$/i;
-        return (
-          parts.length === 3 && parts.every(part => namePattern.test(part))
-        );
-      }, 'Необходимо заполнить Имя, Фамилию и Отчество'),
-    phone: z
-      .string({ required_error: 'Телефон обязателен к заполнению!' })
-      .refine(
-        value => isPossiblePhoneNumber(value),
-        'Проверьте пожалуйста еще раз! Телефон не заполнен до конца!'
-      ),
-  });
+  const Schema = z
+    .object({
+      FLP: z
+        .string({ required_error: 'ФИО обязательно к заполнению!' })
+        .refine(value => {
+          const parts = value.trim().split(/\s+/);
+          const namePattern = /^[a-zа-я]+$/i;
+          return (
+            parts.length === 3 && parts.every(part => namePattern.test(part))
+          );
+        }, 'Необходимо заполнить Имя, Фамилию и Отчество'),
+      phone: z
+        .string({ required_error: 'Телефон обязателен к заполнению!' })
+        .refine(
+          value => isPossiblePhoneNumber(value),
+          'Проверьте пожалуйста еще раз! Телефон не заполнен до конца!'
+        ),
+      wbPhone: z
+        .string({ required_error: 'Телефон обязателен к заполнению!' })
+        .optional()
+        .refine(
+          value => value === undefined || isPossiblePhoneNumber(value),
+          'Проверьте пожалуйста еще раз! Телефон не заполнен до конца!'
+        ),
+      orderCode: z
+        .string({ required_error: 'Код заказа обязателен к заполнению!' })
+        .optional()
+        .refine(value => {
+          return value === undefined || value.length === 5;
+        }, 'Код не заполнен!'),
+      QR: z
+        .array(z.custom<File>())
+        .nullable()
+        .optional()
+        .refine(files => {
+          return (
+            files === null || files?.every(file => file.size <= MAX_FILE_SIZE)
+          );
+        }, `Максимальный размер файла не должен превышать 5 мегабайт.`)
+        .refine(
+          files =>
+            files === null ||
+            files?.every(file => ACCEPTED_IMAGE_TYPES.includes(file.type)),
+          '.jpg, .jpeg, .png, .webp расширения файла необходимо прикреплять!'
+        ),
+    })
+    .refine(
+      data => {
+        const isWbFilled = !!data.wbPhone && !!data.orderCode;
+        const isQRFilled = !!data.QR;
 
-  const FinalSchema = !isMobile
-    ? Schema.merge(
-        z.object({
-          wbPhone: z
-            .string({ required_error: 'Телефон обязателен к заполнению!' })
-            .refine(
-              value => value === undefined || isPossiblePhoneNumber(value),
-              'Проверьте пожалуйста еще раз! Телефон не заполнен до конца!'
-            ),
-          orderCode: z
-            .string({ required_error: 'Код заказа обязателен к заполнению!' })
-            .refine(value => {
-              return value === undefined || value.length === 5;
-            }, 'Код не заполнен!'),
-        })
-      )
-    : Schema.merge(
-        z.object({
-          QR: z
-            .array(z.custom<File>())
-            .nullable()
-            .refine(
-              files => {
-                return files?.every(file => file instanceof File);
-              },
-              {
-                message: 'Файл не прикреплен!',
-              }
-            )
-            .refine(files => {
-              return files?.every(file => file.size <= MAX_FILE_SIZE);
-            }, `Максимальный размер файла не должен превышать 5 мегабайт.`)
-            .refine(
-              files =>
-                files?.every(file => ACCEPTED_IMAGE_TYPES.includes(file.type)),
-              '.jpg, .jpeg, .png, .webp расширения файла необходимо прикреплять!'
-            ),
-        })
-      );
+        return isWbFilled || isQRFilled;
+      },
+      {
+        message:
+          'Заполните либо (Телефон Wb и Код для получения заказа), либо прикрепите QR-код, либо все вместе',
+        path: ['QR'],
+      }
+    );
 
   type HandleSubmitProps = (
     values: InitialValues,
     formikHelpers: FormikHelpers<InitialValues>
   ) => void | Promise<any>;
 
-  type InitialValues = z.infer<typeof FinalSchema>;
+  type InitialValues = z.infer<typeof Schema>;
   const initialValues: InitialValues = {
     phone: '',
     wbPhone: '',
@@ -150,8 +151,8 @@ const WbOrder: FC = () => {
       }
 
       toastIdRef.current = toast({
-        title: 'WildBerries',
-        description: 'Заявка успешно оформлена. Ожидайте ответа!',
+        title: 'Wildberries',
+        description: 'Заявка успешно оформлена!',
         status: 'success',
         duration: 5000,
         isClosable: true,
@@ -193,7 +194,7 @@ const WbOrder: FC = () => {
         <Formik
           initialValues={initialValues}
           onSubmit={handleSubmit}
-          validationSchema={toFormikValidationSchema(FinalSchema as any)}
+          validationSchema={toFormikValidationSchema(Schema)}
           innerRef={formRef}
         >
           {({ isSubmitting }) => {
@@ -215,37 +216,28 @@ const WbOrder: FC = () => {
 
                 {isClient && (
                   <>
-                    {isMobile ? (
-                      <>
-                        <Center mt={5} mb={1}>
-                          <Heading size='sm'>
-                            Если мобильное приложение Wb
-                          </Heading>
-                        </Center>
-                        <FileInput
-                          placeholder={'Прикрепите фотографию'}
-                          label='QR-код для получения заказа'
-                          accept='.png,.jpg,.jpeg,.webp'
-                          name='QR'
-                        />
-                      </>
-                    ) : (
-                      <>
-                        <Center mt={5} mb={1}>
-                          <Heading size='sm'>Если Wb с компьютера</Heading>
-                        </Center>
-                        <CodeInput
-                          name='orderCode'
-                          label={'Код для получения заказа'}
-                        />
-                        <PhoneInput
-                          key={key}
-                          label='Телефон Wb'
-                          name='wbPhone'
-                          placeholder='Ваш Wb телефон'
-                        />
-                      </>
-                    )}
+                    <Center mt={5} mb={1}>
+                      <Heading size='sm'>Если мобильное приложение Wb</Heading>
+                    </Center>
+                    <FileInput
+                      placeholder={'Прикрепите фотографию'}
+                      label='QR-код для получения заказа'
+                      accept='.png,.jpg,.jpeg,.webp'
+                      name='QR'
+                    />
+                    <Center mt={5} mb={1}>
+                      <Heading size='sm'>Если Wb с компьютера</Heading>
+                    </Center>
+                    <CodeInput
+                      name='orderCode'
+                      label={'Код для получения заказа'}
+                    />
+                    <PhoneInput
+                      key={key}
+                      label='Телефон Wb'
+                      name='wbPhone'
+                      placeholder='Ваш Wb телефон'
+                    />
                   </>
                 )}
 
