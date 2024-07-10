@@ -18,7 +18,6 @@ import { useNavigate } from 'react-router-dom';
 import { FC } from 'react';
 import { HiMenu } from 'react-icons/hi';
 import { useGetMe } from '../../features/auth';
-import { ConsoleLog } from '../../utils/debug/console-log';
 import AccountMenu from '../../components/account-menu';
 import { isGraphQLRequestError } from '../../utils/graphql/is-graphql-request-error';
 import queryClient from '../../react-query/query-client';
@@ -28,18 +27,7 @@ const Header: FC = () => {
     error,
     data: getMeResult,
     isPending: getMePending,
-    isRefetching,
   } = useGetMe();
-
-  if (error) {
-    if (isGraphQLRequestError(error)) {
-      if (error.response.errors[0].extensions.statusCode === 401) {
-        queryClient.setQueryData(['Me'], null);
-        console.warn('Unauthenticated!');
-      }
-    }
-  }
-
   const theme = useTheme();
   const navigate = useNavigate();
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -61,6 +49,19 @@ const Header: FC = () => {
       body.style.overflow = 'auto';
     };
   }, [isOpen, isLargerThanMd]);
+
+  console.log({ error });
+
+  if (error) {
+    if (isGraphQLRequestError(error) && error.response.errors[0].extensions.code === 'UNAUTHENTICATED') {
+      queryClient.setQueryData(['Me'], null);
+      console.warn('Unauthenticated!');
+    }
+    if(isGraphQLRequestError(error) && error.response.errors[0].extensions.code === 'AUTHENTICATION_REQUIRED') {
+      queryClient.setQueryData(['Me'], null);
+      console.warn('Session timeout!');
+    }
+  }
 
   const isNotLargerAndIsOpen = !isLargerThanMd && isOpen;
 
@@ -134,7 +135,7 @@ const Header: FC = () => {
   );
 
   return (
-    <Box w='full' minH={isNotLargerAndIsOpen ? '100vh' : 'auto'}>
+    <Box bg="chakra-body-bg" position="sticky" top="0" zIndex="100" w='full' minH={isNotLargerAndIsOpen ? '100vh' : 'auto'}>
       {isNotLargerAndIsOpen ? (
         <Flex direction='column' gap='4' h={'100vh'}>
           {content}

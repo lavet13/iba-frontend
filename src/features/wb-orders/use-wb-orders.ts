@@ -2,7 +2,7 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { graphql } from '../../gql';
 import { WbOrdersQuery } from '../../gql/graphql';
 import { InitialDataOptions } from '../../utils/graphql/initial-data-options';
-import client from '../../graphql-client';
+import { client } from '../../graphql-client';
 import { ConsoleLog } from '../../utils/debug/console-log';
 
 type UseWbOrdersProps = {

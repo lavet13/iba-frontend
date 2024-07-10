@@ -1,6 +1,6 @@
 import { WbOrdersQuery } from '../../gql/graphql';
 import { graphql } from '../../gql';
-import client from '../../graphql-client';
+import { client } from '../../graphql-client';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { InitialDataInfiniteOptions } from '../../utils/graphql/initial-data-infinite-options';
 

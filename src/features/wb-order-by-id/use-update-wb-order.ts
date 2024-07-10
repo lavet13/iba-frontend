@@ -1,7 +1,7 @@
 import { UseMutationOptions, useMutation } from "@tanstack/react-query";
 import { UpdateWbOrderMutation, UpdateWbOrderMutationVariables } from "../../gql/graphql";
 import { graphql } from "../../gql";
-import client from "../../graphql-client";
+import { client } from "../../graphql-client";
 
 export const useUpdateWbOrder = (
   options?: UseMutationOptions<UpdateWbOrderMutation, Error, UpdateWbOrderMutationVariables>

@@ -2,14 +2,13 @@ import {
   Box,
   Button,
   VStack,
-  Text,
   Center,
   Container,
   Alert,
   AlertIcon,
   AlertTitle,
   AlertDescription,
-  Flex,
+  Spinner,
 } from '@chakra-ui/react';
 import { QueryErrorResetBoundary } from '@tanstack/react-query';
 import { FC, useEffect, useRef } from 'react';

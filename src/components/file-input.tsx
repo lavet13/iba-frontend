@@ -14,7 +14,7 @@ import {
   IconButton,
 } from '@chakra-ui/react';
 import { ConsoleLog } from '../utils/debug/console-log';
-import { HiOutlinePaperClip } from 'react-icons/hi';
+import { HiOutlinePaperClip, HiX } from 'react-icons/hi';
 
 type FileInputProps = {
   label: string;
@@ -57,12 +57,18 @@ const FileInput: FC<FileInputProps> = memo(
             }
           };
 
-          const handleInputClick = () => {
+          const handleOnClearClick = () => {
+            setFieldValue(name, null);
+            clearInnerInput();
+          };
+
+          const handleOnInputClick = () => {
             if (inputRef.current) {
               inputRef.current.value = '';
               inputRef.current.click();
             }
           };
+
 
           return (
             <FormControl
@@ -90,12 +96,15 @@ const FileInput: FC<FileInputProps> = memo(
                     readOnly: true,
                     isReadOnly: true,
                     value: fileName,
-                    onClick: handleInputClick,
+                    onClick: handleOnInputClick,
                   }}
                 />
-                <InputRightElement pointerEvents={'none'}>
+                {!value?.length ? (<InputRightElement pointerEvents={'none'}>
                   <Icon as={HiOutlinePaperClip} boxSize={5} />
-                </InputRightElement>
+                </InputRightElement>) :
+                <InputRightElement onClick={handleOnClearClick} cursor={'pointer'}>
+                  <Icon as={HiX} boxSize={5} />
+                </InputRightElement>}
               </InputGroup>
               <ErrorMessage name={name} component={FormErrorMessage} />
             </FormControl>

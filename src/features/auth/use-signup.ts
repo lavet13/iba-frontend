@@ -1,7 +1,7 @@
 import { UseMutationOptions, useMutation } from "@tanstack/react-query";
 import { RegisterMutation, RegisterMutationVariables } from "../../gql/graphql";
 import { graphql } from "../../gql";
-import client from "../../graphql-client";
+import { client } from "../../graphql-client";
 
 export const useSignup = (
   options?: UseMutationOptions<RegisterMutation, Error, RegisterMutationVariables>
@@ -9,7 +9,8 @@ export const useSignup = (
   const register = graphql(`
     mutation Register($signupInput: SignupInput!) {
       signup(signupInput: $signupInput) {
-        token
+        accessToken
+        refreshToken
       }
     }
   `);

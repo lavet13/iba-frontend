@@ -4,7 +4,7 @@ import { FC } from 'react';
 const Footer: FC = () => {
   return (
     <Center>
-      <Text>&copy; ДжаББаров 2024 production</Text>
+      <Text>&copy; ДжаББаров 2024</Text>
     </Center>
   );
 };

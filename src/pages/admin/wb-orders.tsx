@@ -24,6 +24,15 @@ import {
   ModalCloseButton,
   ModalBody,
   Button,
+  LinkBox,
+  LinkOverlay,
+  useClipboard,
+  Text,
+  Icon,
+  Flex,
+  FormControl,
+  FormLabel,
+  Link,
 } from '@chakra-ui/react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -32,12 +41,18 @@ import { useInfiniteWbOrders } from '../../features/wb-orders';
 import { Waypoint } from 'react-waypoint';
 import { MutationUpdateWbOrderArgs, OrderStatus } from '../../gql/graphql';
 import { useSearchParams } from 'react-router-dom';
-import { useWbOrderById, useUpdateWbOrder } from '../../features/wb-order-by-id';
+import {
+  useWbOrderById,
+  useUpdateWbOrder,
+} from '../../features/wb-order-by-id';
 import { Formik, Form, FormikHelpers, FormikProps } from 'formik';
 import SelectWrapper from '../../components/select-wrapper';
 import { z } from 'zod';
 import { toFormikValidationSchema } from 'zod-formik-adapter';
 import { ConsoleLog } from '../../utils/debug/console-log';
+import TextInput from '../../components/text-input';
+import { HiClipboard, HiClipboardCheck } from 'react-icons/hi';
+import ClipboardInput from '../../components/clipboard-input';
 
 type HandleSubmitProps = (
   values: InitialValues,
@@ -107,7 +122,7 @@ const WbOrders: FC = () => {
     isPending: isPendingInfinite,
     isFetching: isFetchingInfinite,
     isFetchingNextPage,
-    refetch: refetchWbOrders
+    refetch: refetchWbOrders,
   } = useInfiniteWbOrders();
 
   const {
@@ -138,7 +153,7 @@ const WbOrders: FC = () => {
   };
 
   const handleEditClose = () => {
-    if(formRef.current !== null) {
+    if (formRef.current !== null) {
       formRef.current.dirty && refetchWbOrderById();
       onEditClose();
       setSearchParams(params => {
@@ -169,7 +184,7 @@ const WbOrders: FC = () => {
       },
     };
 
-    if(formRef.current !== null && formRef.current.dirty) {
+    if (formRef.current !== null && formRef.current.dirty) {
       await updateWbOrder({ ...payload });
       refetchWbOrders();
     }
@@ -270,26 +285,39 @@ const WbOrders: FC = () => {
                         transitionProperty={'common'}
                         _dark={{ _hover: { background: 'gray.700' } }}
                         _hover={{ background: 'gray.100', cursor: 'pointer' }}
-                        onClick={handleEditOpen(o.id)}
                         key={o.id}
                       >
-                        <Td isNumeric>{o.id}</Td>
-                        <Td>{o.name}</Td>
-                        <Td>{o.phone}</Td>
-                        <Td>
-                          <Image
-                            width='60px'
-                            src={`${
+                        <Td onClick={handleEditOpen(o.id)} isNumeric>
+                          {o.id}
+                        </Td>
+                        <Td onClick={handleEditOpen(o.id)}>{o.name}</Td>
+                        <Td onClick={handleEditOpen(o.id)}>{o.phone}</Td>
+                        <LinkBox as={Td}>
+                          <LinkOverlay
+                            href={`${
                               import.meta.env.VITE_API_URI
                             }/assets/qr-codes/${o.qrCode}`}
-                            fallbackSrc='/src/assets/images/no-preview.webp'
-                            alt='qr-code'
-                          />
+                            target='_blank'
+                            rel='noopener noreferrer'
+                          >
+                            <Image
+                              width='60px'
+                              src={`${
+                                import.meta.env.VITE_API_URI
+                              }/assets/qr-codes/${o.qrCode}`}
+                              fallbackSrc='/src/assets/images/no-preview.webp'
+                              alt='qr-code'
+                            />
+                          </LinkOverlay>
+                        </LinkBox>
+                        <Td onClick={handleEditOpen(o.id)} isNumeric>
+                          {o.orderCode}
                         </Td>
-                        <Td isNumeric>{o.orderCode}</Td>
-                        <Td>{o.wbPhone}</Td>
-                        <Td>{statusMap[o.status]}</Td>
-                        <Td>
+                        <Td onClick={handleEditOpen(o.id)}>{o.wbPhone}</Td>
+                        <Td onClick={handleEditOpen(o.id)}>
+                          {statusMap[o.status]}
+                        </Td>
+                        <Td cursor={'auto'}>
                           <Tooltip
                             label={format(
                               new Date(o.createdAt),
@@ -306,7 +334,7 @@ const WbOrders: FC = () => {
                             })}
                           </Tooltip>
                         </Td>
-                        <Td>
+                        <Td cursor={'auto'}>
                           <Tooltip
                             label={format(
                               new Date(o.updatedAt),
@@ -343,37 +371,38 @@ const WbOrders: FC = () => {
                   )}
                 </Fragment>
               ))}
-              {isFetchingNextPage && Array.from({ length: 15 }).map((_, i) => (
-                <Tr key={i}>
-                  <Td isNumeric>
-                    <Skeleton height='20px' />
-                  </Td>
-                  <Td>
-                    <Skeleton height='20px' />
-                  </Td>
-                  <Td>
-                    <Skeleton height='20px' />
-                  </Td>
-                  <Td>
-                    <Skeleton height='65px' />
-                  </Td>
-                  <Td isNumeric>
-                    <Skeleton height='20px' />
-                  </Td>
-                  <Td>
-                    <Skeleton height='20px' />
-                  </Td>
-                  <Td>
-                    <Skeleton height='20px' />
-                  </Td>
-                  <Td isNumeric>
-                    <Skeleton height='20px' />
-                  </Td>
-                  <Td isNumeric>
-                    <Skeleton height='20px' />
-                  </Td>
-                </Tr>
-              ))}
+              {isFetchingNextPage &&
+                Array.from({ length: 15 }).map((_, i) => (
+                  <Tr key={i}>
+                    <Td isNumeric>
+                      <Skeleton height='20px' />
+                    </Td>
+                    <Td>
+                      <Skeleton height='20px' />
+                    </Td>
+                    <Td>
+                      <Skeleton height='20px' />
+                    </Td>
+                    <Td>
+                      <Skeleton height='65px' />
+                    </Td>
+                    <Td isNumeric>
+                      <Skeleton height='20px' />
+                    </Td>
+                    <Td>
+                      <Skeleton height='20px' />
+                    </Td>
+                    <Td>
+                      <Skeleton height='20px' />
+                    </Td>
+                    <Td isNumeric>
+                      <Skeleton height='20px' />
+                    </Td>
+                    <Td isNumeric>
+                      <Skeleton height='20px' />
+                    </Td>
+                  </Tr>
+                ))}
             </Tbody>
           </Table>
         </TableContainer>
@@ -385,7 +414,7 @@ const WbOrders: FC = () => {
           <Stack divider={<StackDivider />}>
             <Box>
               <ModalHeader sx={{ display: 'flex', alignItems: 'center' }}>
-                Редактирование{' '}
+                Редактировать заявку{' '}
                 {fetchStatus === 'fetching' && status === 'success' && (
                   <Spinner />
                 )}
@@ -395,7 +424,9 @@ const WbOrders: FC = () => {
             <ModalBody pb={5}>
               {/* For initial loading */}
               {fetchStatus === 'fetching' && status === 'pending' ? (
-                <Spinner />
+                <Center>
+                  <Spinner />
+                </Center>
               ) : (
                 <Formik
                   initialValues={initialValues}
@@ -407,6 +438,46 @@ const WbOrders: FC = () => {
                   {({ isSubmitting }) => {
                     return (
                       <Form>
+                        <ClipboardInput
+                          label='ID'
+                          value={wbOrderByIdResult?.wbOrderById?.id}
+                        />
+                        <ClipboardInput
+                          label='ФИО'
+                          value={wbOrderByIdResult?.wbOrderById?.name}
+                        />
+                        <ClipboardInput
+                          label='Телефон'
+                          value={wbOrderByIdResult?.wbOrderById?.phone}
+                        />
+                        {wbOrderByIdResult?.wbOrderById?.wbPhone && (
+                          <ClipboardInput
+                            label='Телефон WB'
+                            value={wbOrderByIdResult?.wbOrderById?.wbPhone}
+                          />
+                        )}
+
+                        {wbOrderByIdResult?.wbOrderById?.orderCode && (
+                          <ClipboardInput label="Код для получения заказа" value={wbOrderByIdResult.wbOrderById.orderCode} />
+                        )}
+
+                        {wbOrderByIdResult?.wbOrderById?.qrCode && (
+                          <Button
+                            as={Link}
+                            size='lg'
+                            variant='solid'
+                            href={`${
+                              import.meta.env.VITE_API_URI
+                            }/assets/qr-codes/${
+                              wbOrderByIdResult?.wbOrderById?.qrCode ?? ''
+                            }`}
+                            target='_blank'
+                            colorScheme='red'
+                          >
+                            Посмотреть QR
+                          </Button>
+                        )}
+
                         <SelectWrapper
                           name='status'
                           label='Выберите статус'
@@ -436,7 +507,6 @@ const WbOrders: FC = () => {
           </Stack>
         </ModalContent>
       </Modal>
-
     </>
   );
 };

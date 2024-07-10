@@ -44,16 +44,15 @@ to bundle CSS into JS file.
 [rr]: https://github.com/facebook/react/blob/main/packages/react-refresh/src/ReactFreshRuntime.js#L553
 [preamble]: https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/src/fast-refresh.ts#L30
 
-## Implemented:
-- Cursor-based pagination by id
-- JWT(cookies)
-
 ## Planning:
-- Cursor should have been used as createdAt instead of id
 - Disable retry only for specific status code
 - Refresh token and access token
 - Invalidation and optimistic updates using useMutation
 - Query Key Factory
+- Subscribe to creation of wb-order and showing it in the wb-orders table?????
+- implement search by phone or phoneWb or `ФИО`
+- adaptive header
+- sticky stuff(if needed)
 
 <!-- This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules. -->
 <!---->
