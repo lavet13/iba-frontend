@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { graphql } from '../../gql';
 import { MeQuery } from '../../gql/graphql';
 import { client } from '../../graphql-client';
+import queryClient from '../../react-query/query-client';
 import { InitialDataOptions } from '../../utils/graphql/initial-data-options';
 import { isGraphQLRequestError } from '../../utils/graphql/is-graphql-request-error';
 
@@ -28,8 +29,15 @@ export const useGetMe = (options?: InitialDataOptions<MeQuery>) => {
       } catch(error) {
         console.error('HELP?', error);
         if(isGraphQLRequestError(error) && error.response.errors[0].extensions.code === 'AUTHENTICATION_REQUIRED') {
+          queryClient.setQueryData(['Me'], null);
+          console.warn('Session timeout!');
+
           console.log('navigation fired!');
           navigate('/');
+        }
+        if (isGraphQLRequestError(error) && error.response.errors[0].extensions.code === 'UNAUTHENTICATED') {
+          queryClient.setQueryData(['Me'], null);
+          console.warn('Unauthenticated!');
         }
         throw error;
       }

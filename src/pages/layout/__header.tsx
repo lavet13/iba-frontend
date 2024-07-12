@@ -19,8 +19,6 @@ import { FC } from 'react';
 import { HiMenu } from 'react-icons/hi';
 import { useGetMe } from '../../features/auth';
 import AccountMenu from '../../components/account-menu';
-import { isGraphQLRequestError } from '../../utils/graphql/is-graphql-request-error';
-import queryClient from '../../react-query/query-client';
 
 const Header: FC = () => {
   const {
@@ -49,19 +47,6 @@ const Header: FC = () => {
       body.style.overflow = 'auto';
     };
   }, [isOpen, isLargerThanMd]);
-
-  console.log({ error });
-
-  if (error) {
-    if (isGraphQLRequestError(error) && error.response.errors[0].extensions.code === 'UNAUTHENTICATED') {
-      queryClient.setQueryData(['Me'], null);
-      console.warn('Unauthenticated!');
-    }
-    if(isGraphQLRequestError(error) && error.response.errors[0].extensions.code === 'AUTHENTICATION_REQUIRED') {
-      queryClient.setQueryData(['Me'], null);
-      console.warn('Session timeout!');
-    }
-  }
 
   const isNotLargerAndIsOpen = !isLargerThanMd && isOpen;
 
