@@ -53,6 +53,7 @@ import { ConsoleLog } from '../../utils/debug/console-log';
 import TextInput from '../../components/text-input';
 import { HiClipboard, HiClipboardCheck } from 'react-icons/hi';
 import ClipboardInput from '../../components/clipboard-input';
+import queryClient from '../../react-query/query-client';
 
 type HandleSubmitProps = (
   values: InitialValues,
@@ -113,6 +114,7 @@ const WbOrders: FC = () => {
   } = useDisclosure();
   const [searchParams, setSearchParams] = useSearchParams();
   const wbOrderIdToEdit = searchParams.get('edit')!;
+  const take = 5;
   const {
     data: infWbOrdersResult,
     error: infWbOrdersError,
@@ -122,19 +124,21 @@ const WbOrders: FC = () => {
     isPending: isPendingInfinite,
     isFetching: isFetchingInfinite,
     isFetchingNextPage,
-    refetch: refetchWbOrders,
-  } = useInfiniteWbOrders();
+  } = useInfiniteWbOrders(take);
 
   const {
     data: wbOrderByIdResult,
     fetchStatus,
     status,
-    refetch: refetchWbOrderById,
   } = useWbOrderById(wbOrderIdToEdit, {
     enabled: !!wbOrderIdToEdit,
   });
 
-  const { mutateAsync: updateWbOrder } = useUpdateWbOrder();
+  console.log({
+    inf: queryClient.getQueryData(['WbOrders', { input: { take } }]),
+  });
+
+  const { mutate: updateWbOrder } = useUpdateWbOrder();
 
   const initialValues: InitialValues = {
     status: wbOrderByIdResult?.wbOrderById?.status ?? '',
@@ -154,7 +158,6 @@ const WbOrders: FC = () => {
 
   const handleEditClose = () => {
     if (formRef.current !== null) {
-      formRef.current.dirty && refetchWbOrderById();
       onEditClose();
       setSearchParams(params => {
         const query = new URLSearchParams(params.toString());
@@ -181,12 +184,18 @@ const WbOrders: FC = () => {
       input: {
         id: wbOrderIdToEdit,
         status: values.status,
+        name: wbOrderByIdResult?.wbOrderById?.name ?? '',
+        phone: wbOrderByIdResult?.wbOrderById?.phone ?? '',
+        qrCode: wbOrderByIdResult?.wbOrderById?.qrCode ?? null,
+        wbPhone: wbOrderByIdResult?.wbOrderById?.wbPhone ?? null,
+        createdAt: wbOrderByIdResult?.wbOrderById?.createdAt ?? 0,
+        updatedAt: wbOrderByIdResult?.wbOrderById?.updatedAt ?? 0,
+        orderCode: wbOrderByIdResult?.wbOrderById?.orderCode ?? null,
       },
     };
 
     if (formRef.current !== null && formRef.current.dirty) {
-      await updateWbOrder({ ...payload });
-      refetchWbOrders();
+      updateWbOrder({ ...payload });
     }
 
     actions.setSubmitting(false);
@@ -458,7 +467,10 @@ const WbOrders: FC = () => {
                         )}
 
                         {wbOrderByIdResult?.wbOrderById?.orderCode && (
-                          <ClipboardInput label="Код для получения заказа" value={wbOrderByIdResult.wbOrderById.orderCode} />
+                          <ClipboardInput
+                            label='Код для получения заказа'
+                            value={wbOrderByIdResult.wbOrderById.orderCode}
+                          />
                         )}
 
                         {wbOrderByIdResult?.wbOrderById?.qrCode && (
