@@ -29,76 +29,76 @@ function Html({ children }: HtmlProps) {
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link
           rel='preload'
-          href='/src/assets/fonts/Raleway/Raleway-Regular.ttf'
+          href={`/fonts/Raleway/Raleway-Regular.ttf`}
           as='font'
           type='font/ttf'
           crossOrigin="anonymous"
         />
         <link
           rel='preload'
-          href='/src/assets/fonts/Raleway/Raleway-Medium.ttf'
+          href='/fonts/Raleway/Raleway-Medium.ttf'
           as='font'
           type='font/ttf'
           crossOrigin="anonymous"
         />
         <link
           rel='preload'
-          href='/src/assets/fonts/Raleway/Raleway-Bold.ttf'
+          href='/fonts/Raleway/Raleway-Bold.ttf'
           as='font'
           type='font/ttf'
           crossOrigin="anonymous"
         />
         <link
           rel='preload'
-          href='/src/assets/fonts/Raleway/Raleway-Black.ttf'
+          href='/fonts/Raleway/Raleway-Black.ttf'
           as='font'
           type='font/ttf'
           crossOrigin="anonymous"
         />
         <link
           rel='preload'
-          href='/src/assets/fonts/Golos/GolosText-Regular.ttf'
+          href='/fonts/Golos/GolosText-Regular.ttf'
           as='font'
           type='font/ttf'
           crossOrigin="anonymous"
         />
         <link
           rel='preload'
-          href='/src/assets/fonts/Golos/GolosText-Medium.ttf'
+          href='/fonts/Golos/GolosText-Medium.ttf'
           as='font'
           type='font/ttf'
           crossOrigin="anonymous"
         />
         <link
           rel='preload'
-          href='/src/assets/fonts/Golos/GolosText-SemiBold.ttf'
+          href='/fonts/Golos/GolosText-SemiBold.ttf'
           as='font'
           type='font/ttf'
           crossOrigin="anonymous"
         />
         <link
           rel='preload'
-          href='/src/assets/fonts/Golos/GolosText-Bold.ttf'
+          href='/fonts/Golos/GolosText-Bold.ttf'
           as='font'
           type='font/ttf'
           crossOrigin="anonymous"
         />
         <link
           rel='preload'
-          href='/src/assets/fonts/Golos/GolosText-ExtraBold.ttf'
+          href='/fonts/Golos/GolosText-ExtraBold.ttf'
           as='font'
           type='font/ttf'
           crossOrigin="anonymous"
         />
         <link
           rel='preload'
-          href='/src/assets/fonts/Golos/GolosText-Black.ttf'
+          href='/fonts/Golos/GolosText-Black.ttf'
           as='font'
           type='font/ttf'
           crossOrigin="anonymous"
         />
-        <link rel="stylesheet" href="/src/assets/fonts/index.css" />
-        <title>Vite + React + SSR + Chakra-UI</title>
+        <link rel="stylesheet" href="/fonts/index.css" />
+        <title>Джаббаров | Перевозчик</title>
       </head>
       <body>
         <div id="root">{children}</div>

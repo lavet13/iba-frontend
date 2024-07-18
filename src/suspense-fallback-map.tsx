@@ -1,53 +1,68 @@
 import {
-  Box,
-  ButtonGroup,
-  Card,
-  CardBody,
-  CardHeader,
-  Center,
-  Container,
-  Flex,
-  Grid,
-  Heading,
-  HStack,
   Skeleton,
-  SkeletonText,
-  Spacer,
-  Text,
-  VStack,
+  Table,
+  TableContainer,
+  Tbody,
+  Td,
+  Th,
+  Thead,
+  Tr,
 } from '@chakra-ui/react';
 
 const suspenseFallbackMap = new Map([
   [
-    'blog',
-    <Container>
-      <Grid
-        templateColumns={'repeat(auto-fill, minmax(15rem, 1fr))'}
-        gap='40px'
-        mb={2}
-      >
-        {Array.from({ length: 6 }).map((_, idx) => (
-          <Box key={idx} as='article'>
-            <Card height='100%' variant='outline'>
-              <CardHeader>
-                <Skeleton mb={2} height={'10px'} width={'80%'} />
-                <Heading size='md'>
-                  <Skeleton height={'10px'} />
-                </Heading>
-              </CardHeader>
-              <CardBody>
-                <SkeletonText noOfLines={4} />
-              </CardBody>
-            </Card>
-          </Box>
-        ))}
-      </Grid>
+    'admin/wb-orders',
+    <TableContainer>
+      <Table variant='simple' size='sm'>
+        <Thead>
+          <Tr>
+            <Th isNumeric>Номер заявки</Th>
+            <Th>ФИО</Th>
+            <Th>Телефон</Th>
+            <Th>QR-код</Th>
+            <Th isNumeric>Код заказа</Th>
+            <Th>Телефон Wb</Th>
+            <Th>Статус</Th>
+            <Th isNumeric>Создано</Th>
+            <Th isNumeric>Обновлено</Th>
+          </Tr>
+        </Thead>
 
-      <Flex py={3} justify={'center'} direction={['column', 'row']} gap={2}>
-        <Skeleton width='180px' height='50px' />
-        <Skeleton width='180px' height='50px' />
-      </Flex>
-    </Container>,
+        <Tbody>
+          {Array.from({ length: 30 }).map((_, i) => (
+            <Tr key={i}>
+              <Td isNumeric>
+                <Skeleton height='20px' />
+              </Td>
+              <Td>
+                <Skeleton height='20px' />
+              </Td>
+              <Td>
+                <Skeleton height='20px' />
+              </Td>
+              <Td>
+                <Skeleton height='65px' />
+              </Td>
+              <Td isNumeric>
+                <Skeleton height='20px' />
+              </Td>
+              <Td>
+                <Skeleton height='20px' />
+              </Td>
+              <Td>
+                <Skeleton height='20px' />
+              </Td>
+              <Td isNumeric>
+                <Skeleton height='20px' />
+              </Td>
+              <Td isNumeric>
+                <Skeleton height='20px' />
+              </Td>
+            </Tr>
+          ))}
+        </Tbody>
+      </Table>
+    </TableContainer>,
   ],
 ]);
 

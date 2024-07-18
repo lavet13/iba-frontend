@@ -33,6 +33,7 @@ import {
   FormControl,
   FormLabel,
   Link,
+  useColorModeValue,
 } from '@chakra-ui/react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -54,6 +55,8 @@ import TextInput from '../../components/text-input';
 import { HiClipboard, HiClipboardCheck } from 'react-icons/hi';
 import ClipboardInput from '../../components/clipboard-input';
 import queryClient from '../../react-query/query-client';
+import { useNewWbOrderSubscription } from '../../hooks/use-new-wb-order-subscription';
+import useIsClient from '../../utils/ssr/use-is-client';
 
 type HandleSubmitProps = (
   values: InitialValues,
@@ -105,6 +108,8 @@ type FormSchema = Omit<z.infer<typeof Schema>, 'status'>;
 
 type InitialValues = FormSchema & { status: StatusKey | '' };
 
+export const take = 30;
+
 const WbOrders: FC = () => {
   const formRef = useRef<FormikProps<InitialValues>>(null);
   const {
@@ -112,9 +117,10 @@ const WbOrders: FC = () => {
     onOpen: onEditOpen,
     onClose: onEditClose,
   } = useDisclosure();
+  const addedOrderRef = useRef<HTMLTableRowElement | null>(null);
+  const addedOrderIdRef = useRef<string | number | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const wbOrderIdToEdit = searchParams.get('edit')!;
-  const take = 5;
   const {
     data: infWbOrdersResult,
     error: infWbOrdersError,
@@ -124,7 +130,15 @@ const WbOrders: FC = () => {
     isPending: isPendingInfinite,
     isFetching: isFetchingInfinite,
     isFetchingNextPage,
+    fetchStatus: fetchStatusInfinite,
+    status: statusInfinite,
   } = useInfiniteWbOrders(take);
+
+  const { newOrder, error } = useNewWbOrderSubscription();
+
+  useEffect(() => {
+    newOrder && queryClient.invalidateQueries({ queryKey: ['WbOrders'] });
+  }, [newOrder]);
 
   const {
     data: wbOrderByIdResult,
@@ -134,11 +148,18 @@ const WbOrders: FC = () => {
     enabled: !!wbOrderIdToEdit,
   });
 
-  console.log({
-    inf: queryClient.getQueryData(['WbOrders', { input: { take } }]),
-  });
+  const { mutate: updateWbOrder, variables } = useUpdateWbOrder();
 
-  const { mutate: updateWbOrder } = useUpdateWbOrder();
+  useEffect(() => {
+    setTimeout(() => {
+      if (addedOrderRef.current && addedOrderIdRef.current === wbOrderIdToEdit) {
+        addedOrderRef.current.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+        });
+      }
+    }, 1);
+  }, [addedOrderRef.current, addedOrderIdRef.current]);
 
   const initialValues: InitialValues = {
     status: wbOrderByIdResult?.wbOrderById?.status ?? '',
@@ -203,7 +224,7 @@ const WbOrders: FC = () => {
   };
 
   useEffect(() => {
-    if (wbOrderByIdResult?.wbOrderById && wbOrderIdToEdit) {
+    if (wbOrderByIdResult?.wbOrderById) {
       onEditOpen();
     }
   }, [wbOrderByIdResult]);
@@ -211,6 +232,9 @@ const WbOrders: FC = () => {
   if (isInfWbOrdersError) {
     throw infWbOrdersError;
   }
+
+  const bgUpdated = useColorModeValue('gray.200', 'gray.600');
+  const bgAdded = useColorModeValue('teal.100', 'teal.800');
 
   return (
     <>
@@ -287,81 +311,130 @@ const WbOrders: FC = () => {
               {infWbOrdersResult.pages.map((group, i, arrGroup) => (
                 <Fragment key={i}>
                   {group.wbOrders.edges.length !== 0 ? (
-                    group.wbOrders.edges.map(o => (
-                      <Tr
-                        transitionTimingFunction={'ease-in-out'}
-                        transitionDuration={'fast'}
-                        transitionProperty={'common'}
-                        _dark={{ _hover: { background: 'gray.700' } }}
-                        _hover={{ background: 'gray.100', cursor: 'pointer' }}
-                        key={o.id}
-                      >
-                        <Td onClick={handleEditOpen(o.id)} isNumeric>
-                          {o.id}
-                        </Td>
-                        <Td onClick={handleEditOpen(o.id)}>{o.name}</Td>
-                        <Td onClick={handleEditOpen(o.id)}>{o.phone}</Td>
-                        <LinkBox as={Td}>
-                          <LinkOverlay
-                            href={`${
-                              import.meta.env.VITE_API_URI
-                            }/assets/qr-codes/${o.qrCode}`}
-                            target='_blank'
-                            rel='noopener noreferrer'
-                          >
-                            <Image
-                              width='60px'
-                              src={`${
+                    group.wbOrders.edges.map(o => {
+                      const wbOrderPending =
+                        fetchStatusInfinite === 'fetching' &&
+                        statusInfinite === 'success' &&
+                        variables?.input.id == o.id;
+
+                      if (wbOrderPending) {
+                        return (
+                          <Tr key={o.id}>
+                            <Td isNumeric>
+                              <Skeleton height='20px' />
+                            </Td>
+                            <Td>
+                              <Skeleton height='20px' />
+                            </Td>
+                            <Td>
+                              <Skeleton height='20px' />
+                            </Td>
+                            <Td>
+                              <Skeleton height='65px' />
+                            </Td>
+                            <Td isNumeric>
+                              <Skeleton height='20px' />
+                            </Td>
+                            <Td>
+                              <Skeleton height='20px' />
+                            </Td>
+                            <Td>
+                              <Skeleton height='20px' />
+                            </Td>
+                            <Td isNumeric>
+                              <Skeleton height='20px' />
+                            </Td>
+                            <Td isNumeric>
+                              <Skeleton height='20px' />
+                            </Td>
+                          </Tr>
+                        );
+                      }
+
+                      if (variables?.input.id === o.id) {
+                        addedOrderIdRef.current = o.id;
+                      }
+
+                      return (
+                        <Tr
+                          key={o.id}
+                          transitionTimingFunction={'ease-in-out'}
+                          transitionDuration={'fast'}
+                          transitionProperty={'common'}
+                          {...(variables?.input.id == o.id
+                            ? { bg: bgUpdated, ref: addedOrderRef }
+                            : {})}
+                          {...(newOrder?.id === o.id ? { bg: bgAdded } : {})}
+                          _dark={{ _hover: { background: 'gray.700' } }}
+                          _hover={{ background: 'gray.100', cursor: 'pointer' }}
+                        >
+                          <Td onClick={handleEditOpen(o.id)} isNumeric>
+                            {o.id}
+                          </Td>
+                          <Td onClick={handleEditOpen(o.id)}>{o.name}</Td>
+                          <Td onClick={handleEditOpen(o.id)}>{o.phone}</Td>
+                          <LinkBox as={Td}>
+                            <LinkOverlay
+                              href={`${
                                 import.meta.env.VITE_API_URI
                               }/assets/qr-codes/${o.qrCode}`}
-                              fallbackSrc='/src/assets/images/no-preview.webp'
-                              alt='qr-code'
-                            />
-                          </LinkOverlay>
-                        </LinkBox>
-                        <Td onClick={handleEditOpen(o.id)} isNumeric>
-                          {o.orderCode}
-                        </Td>
-                        <Td onClick={handleEditOpen(o.id)}>{o.wbPhone}</Td>
-                        <Td onClick={handleEditOpen(o.id)}>
-                          {statusMap[o.status]}
-                        </Td>
-                        <Td cursor={'auto'}>
-                          <Tooltip
-                            label={format(
-                              new Date(o.createdAt),
-                              'dd.MM.yyyy, HH:mm:ss',
-                              {
+                              target='_blank'
+                              rel='noopener noreferrer'
+                            >
+                              <Image
+                                width='60px'
+                                src={`${
+                                  import.meta.env.VITE_API_URI
+                                }/assets/qr-codes/${o.qrCode}`}
+                                fallbackSrc='/images/no-preview.webp'
+                                alt='qr-code'
+                              />
+                            </LinkOverlay>
+                          </LinkBox>
+                          <Td onClick={handleEditOpen(o.id)} isNumeric>
+                            {o.orderCode}
+                          </Td>
+                          <Td onClick={handleEditOpen(o.id)}>{o.wbPhone}</Td>
+                          <Td onClick={handleEditOpen(o.id)}>
+                            {statusMap[o.status]}
+                          </Td>
+                          <Td cursor={'auto'}>
+                            <Tooltip
+                              label={format(
+                                new Date(o.createdAt),
+                                'dd.MM.yyyy, HH:mm:ss',
+                                {
+                                  locale: ru,
+                                }
+                              )}
+                            >
+                              {formatDistanceToNow(new Date(o.createdAt), {
+                                addSuffix: true,
                                 locale: ru,
-                              }
-                            )}
-                          >
-                            {formatDistanceToNow(new Date(o.createdAt), {
-                              addSuffix: true,
-                              locale: ru,
-                              includeSeconds: true,
-                            })}
-                          </Tooltip>
-                        </Td>
-                        <Td cursor={'auto'}>
-                          <Tooltip
-                            label={format(
-                              new Date(o.updatedAt),
-                              'dd.MM.yyyy, HH:mm:ss',
-                              {
+                                includeSeconds: true,
+                              })}
+                            </Tooltip>
+                          </Td>
+                          <Td cursor={'auto'}>
+                            <Tooltip
+                              label={format(
+                                new Date(o.updatedAt),
+                                'dd.MM.yyyy, HH:mm:ss',
+                                {
+                                  locale: ru,
+                                }
+                              )}
+                            >
+                              {formatDistanceToNow(new Date(o.updatedAt), {
+                                addSuffix: true,
                                 locale: ru,
-                              }
-                            )}
-                          >
-                            {formatDistanceToNow(new Date(o.updatedAt), {
-                              addSuffix: true,
-                              locale: ru,
-                              includeSeconds: true,
-                            })}
-                          </Tooltip>
-                        </Td>
-                      </Tr>
-                    ))
+                                includeSeconds: true,
+                              })}
+                            </Tooltip>
+                          </Td>
+                        </Tr>
+                      );
+                    })
                   ) : (
                     <Tr>
                       <Td borderBottom='none' textAlign='center' colSpan={999}>
@@ -477,14 +550,13 @@ const WbOrders: FC = () => {
                           <Button
                             as={Link}
                             size='lg'
-                            variant='solid'
+                            variant='outline'
                             href={`${
                               import.meta.env.VITE_API_URI
                             }/assets/qr-codes/${
                               wbOrderByIdResult?.wbOrderById?.qrCode ?? ''
                             }`}
                             target='_blank'
-                            colorScheme='red'
                           >
                             Посмотреть QR
                           </Button>

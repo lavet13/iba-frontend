@@ -57,8 +57,9 @@ const AccountMenu: FC<AccountMenuProps> = ({ onClose }) => {
     <Menu onClose={onCloseMenu} onOpen={onOpen}>
       <MenuButton
         as={Button}
-        colorScheme='telegram'
-        variant="ghost"
+        colorScheme='teal'
+        variant="solid"
+        size={['md', null, 'sm']}
         isLoading={getMePending || isRefetching}
         isDisabled={getMePending || isRefetching}
         spinnerPlacement='start'

@@ -45,11 +45,9 @@ to bundle CSS into JS file.
 [preamble]: https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/src/fast-refresh.ts#L30
 
 ## Planning:
-- Invalidation and optimistic updates using useMutation
-- Disable retry only for specific status code
-- Query Key Factory
-- Subscribe to creation of wb-order and showing it in the wb-orders table?????
 - implement search by phone or phoneWb or `ФИО`
+- Query Key Factory
+- Disable retry only for specific status code
 - adaptive header
 - sticky stuff(if needed)
 

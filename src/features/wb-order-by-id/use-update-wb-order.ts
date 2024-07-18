@@ -1,5 +1,10 @@
-import { UseMutationOptions, useMutation } from '@tanstack/react-query';
 import {
+  UseMutationOptions,
+  useMutation,
+  InfiniteData,
+} from '@tanstack/react-query';
+import {
+  UpdateWbInput,
   UpdateWbOrderMutation,
   UpdateWbOrderMutationVariables,
   WbOrderByIdQuery,
@@ -8,6 +13,7 @@ import {
 import { graphql } from '../../gql';
 import { client } from '../../graphql-client';
 import queryClient from '../../react-query/query-client';
+import { take } from '../../pages/admin/wb-orders';
 
 export const useUpdateWbOrder = (
   options?: UseMutationOptions<
@@ -36,14 +42,37 @@ export const useUpdateWbOrder = (
     mutationFn: (variables: UpdateWbOrderMutationVariables) => {
       return client.request(updateWbOrder, variables);
     },
-    onSuccess(data, variables) {
+    // @ts-ignore
+    async onMutate(variables) {
       const id = variables.input.id;
-      console.log({ data });
+
+      // cancel any outgoing refetches
+      // (so they don't override our optimistic update)
+      await queryClient.cancelQueries({ queryKey: ['WbOrderById', { id }] });
+
+      // snapshot the previous value
+      const previousWbOrder = queryClient.getQueryData<WbOrderByIdQuery>([
+        'WbOrderById',
+        { id },
+      ])!;
+
+      const wbOrderById = variables.input;
+
       queryClient.setQueryData<WbOrderByIdQuery>(['WbOrderById', { id }], {
-        wbOrderById: data.updateWbOrder,
+        wbOrderById,
+      });
+
+      return { previousWbOrder };
+    },
+    onError(error, variables, context) {
+      const id = context!.previousWbOrder.wbOrderById!.id;
+      const wbOrderById = context!.previousWbOrder.wbOrderById;
+
+      queryClient.setQueryData<WbOrderByIdQuery>(['WbOrderById', { id }], {
+        wbOrderById,
       });
     },
-    onSettled(data, error, variables, context) {
+    onSettled() {
       return queryClient.invalidateQueries({ queryKey: ['WbOrders'] });
     },
     ...options,

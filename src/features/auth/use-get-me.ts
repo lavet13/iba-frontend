@@ -27,7 +27,7 @@ export const useGetMe = (options?: InitialDataOptions<MeQuery>) => {
       try {
         return await client.request(me);
       } catch(error) {
-        console.error('HELP?', error);
+        import.meta.env.DEV && console.error('HELP?', error);
         if(isGraphQLRequestError(error) && error.response.errors[0].extensions.code === 'AUTHENTICATION_REQUIRED') {
           queryClient.setQueryData(['Me'], null);
           console.warn('Session timeout!');

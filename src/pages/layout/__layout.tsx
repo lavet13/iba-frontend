@@ -11,12 +11,13 @@ import {
   Spinner,
 } from '@chakra-ui/react';
 import { QueryErrorResetBoundary } from '@tanstack/react-query';
-import { FC, useEffect, useRef } from 'react';
+import { FC, lazy, Suspense, useEffect, useRef } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import Footer from './__footer';
-import Header from './__header';
 import { ErrorBoundary } from 'react-error-boundary';
 import { isGraphQLRequestError } from '../../utils/graphql/is-graphql-request-error';
+import { Loadable } from '../../loadable';
+import Header from './__header';
+import Footer from './__footer';
 
 const Layout: FC = () => {
   return (

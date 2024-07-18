@@ -1,5 +1,6 @@
-import { FC, memo } from 'react';
 import 'react-phone-number-input/style.css';
+
+import { FC, memo } from 'react';
 
 import { ErrorMessage, FastField, FastFieldProps } from 'formik';
 
@@ -13,6 +14,7 @@ import {
 import PhoneInputWithCountrySelect from 'react-phone-number-input';
 import ru from 'react-phone-number-input/locale/ru.json';
 import { E164Number } from 'libphonenumber-js/types.cjs';
+import useIsClient from '../utils/ssr/use-is-client';
 
 type PhoneInputProps = {
   name: string;
@@ -20,8 +22,10 @@ type PhoneInputProps = {
 } & InputProps;
 
 const PhoneInput: FC<PhoneInputProps> = memo(({ name, label, onChange, value, ...props }) => {
+  const { isClient } = useIsClient();
+
   return (
-    <FastField name={name}>
+    <FastField name={name} {...(isClient ? { isClient } : {})}>
       {({
         field: { onChange, value, ...field },
         meta,
@@ -37,6 +41,7 @@ const PhoneInput: FC<PhoneInputProps> = memo(({ name, label, onChange, value, ..
             isInvalid={!!meta.error && meta.touched}
           >
             <FormLabel htmlFor={props.id || name}>{label}</FormLabel>
+            {isClient ?
             <PhoneInputWithCountrySelect
               countries={['RU']}
               international
@@ -49,7 +54,7 @@ const PhoneInput: FC<PhoneInputProps> = memo(({ name, label, onChange, value, ..
               inputComponent={Input}
               {...field}
               {...props}
-            />
+            /> : <Input variant="filled" />}
             <ErrorMessage name={name} component={FormErrorMessage} />
           </FormControl>
         );

@@ -1,6 +1,5 @@
 import { Fragment, useEffect } from 'react';
 import {
-  Button,
   ButtonGroup,
   CloseButton,
   Container,
@@ -14,25 +13,26 @@ import {
   SimpleGrid,
   Box,
 } from '@chakra-ui/react';
-import { useNavigate } from 'react-router-dom';
 import { FC } from 'react';
 import { HiMenu } from 'react-icons/hi';
 import { useGetMe } from '../../features/auth';
 import AccountMenu from '../../components/account-menu';
+import NavLink from '../../components/nav-link';
+import useIntersectionObserver from '../../hooks/use-intersection-observer';
 
 const Header: FC = () => {
-  const {
-    error,
-    data: getMeResult,
-    isPending: getMePending,
-  } = useGetMe();
+  const { error, data: getMeResult } = useGetMe();
   const theme = useTheme();
-  const navigate = useNavigate();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isLargerThanMd] = useMediaQuery(
     `(min-width: ${theme.breakpoints.md})`,
     { ssr: true, fallback: false }
   );
+
+  const [headerRef, isNotAtTop] = useIntersectionObserver({
+    threshold: 1,
+    rootMargin: '-1px 0px 0px 0px',
+  });
 
   useEffect(() => {
     const body = document.body;
@@ -50,49 +50,42 @@ const Header: FC = () => {
 
   const isNotLargerAndIsOpen = !isLargerThanMd && isOpen;
 
-  const buttons = getMePending
-    ? []
-    : [
-        getMeResult?.me && getMeResult.me.role === 'ADMIN' && (
-          <Button
-            onClick={() => {
-              navigate('/admin/wb-orders');
-              onClose();
-            }}
-            variant='ghost'
-            size={['md', null, 'sm']}
-            colorScheme='red'
-          >
-            Заявки WB
-          </Button>
-        ),
-        <Button
-          onClick={() => {
-            navigate('/wb-order');
-            onClose();
-          }}
-          variant='ghost'
-          size={['md', null, 'sm']}
-        >
-          Wildberries
-        </Button>,
-        getMeResult?.me && (
-          <AccountMenu onClose={onClose} />
-        )
-      ].filter(Boolean);
+  const buttons = [
+    getMeResult?.me && getMeResult.me.role === 'ADMIN' && (
+      <NavLink
+        to={'/admin/wb-orders'}
+        onClick={() => {
+          onClose();
+        }}
+        colorScheme='teal'
+      >
+        Заявки WB
+      </NavLink>
+    ),
+    <NavLink
+      to={'/wb-order'}
+      onClick={() => {
+        onClose();
+      }}
+      colorScheme='pink'
+    >
+      Wildberries
+    </NavLink>,
+    getMeResult?.me && <AccountMenu onClose={onClose} />,
+  ].filter(Boolean);
 
   let content = (
     <Container>
       <Flex pt='1.5' align={'center'} minH={'58px'} overflow='auto'>
-        <Button
-          variant='link'
+        <NavLink
+          to={'/'}
+          colorScheme='teal'
           onClick={() => {
-            navigate('/');
             onClose();
           }}
         >
           Главная
-        </Button>
+        </NavLink>
         <Spacer />
         {isLargerThanMd ? (
           <ButtonGroup alignItems='center' gap='2'>
@@ -119,8 +112,24 @@ const Header: FC = () => {
     </Container>
   );
 
+  console.log({ isNotAtTop });
+
   return (
-    <Box bg="chakra-body-bg" position="sticky" top="0" zIndex="100" w='full' minH={isNotLargerAndIsOpen ? '100vh' : 'auto'}>
+    <>
+    <Box height={'1px'} />
+    <Box
+      ref={headerRef}
+      bg='chakra-body-bg'
+      position='sticky'
+      top='0'
+      zIndex='100'
+      w='full'
+      minH={isNotLargerAndIsOpen ? '100vh' : 'auto'}
+      boxShadow={isNotAtTop ? 'none' : 'sm'}
+      transitionTimingFunction={'ease-in-out'}
+      transitionDuration={'fast'}
+      transitionProperty={'common'}
+    >
       {isNotLargerAndIsOpen ? (
         <Flex direction='column' gap='4' h={'100vh'}>
           {content}
@@ -140,6 +149,7 @@ const Header: FC = () => {
         content
       )}
     </Box>
+    </>
   );
 };
 

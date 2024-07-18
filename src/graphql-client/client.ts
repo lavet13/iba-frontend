@@ -24,7 +24,7 @@ class AuthenticatedGraphQLClient extends GraphQLClient {
     try {
       return await (super.request as any)(documentOrOptions, ...variablesAndRequestHeaders);
     } catch (error: any) {
-      console.log({ error });
+      import.meta.env.DEV && console.log({ error });
       if (isGraphQLRequestError(error) && error.response?.errors?.[0]?.extensions?.code === 'TOKEN_EXPIRED') {
         await this.refreshTokens();
         return (super.request as any)(documentOrOptions, ...variablesAndRequestHeaders);

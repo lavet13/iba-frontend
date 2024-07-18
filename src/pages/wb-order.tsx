@@ -5,9 +5,17 @@ import {
   Heading,
   ToastId,
   useToast,
+  AlertDescription,
+  AlertIcon,
+  AlertTitle,
+  Alert,
+  LinkBox,
+  LinkOverlay,
+  Image,
+  Text,
 } from '@chakra-ui/react';
 import { Form, Formik, FormikHelpers, FormikProps } from 'formik';
-import { FC, useRef } from 'react';
+import { FC, ReactNode, useRef, useState } from 'react';
 import { z } from 'zod';
 import { toFormikValidationSchema } from 'zod-formik-adapter';
 import FileInput from '../components/file-input';
@@ -17,9 +25,8 @@ import { ConsoleLog } from '../utils/debug/console-log';
 import { isPossiblePhoneNumber } from 'react-phone-number-input';
 import CodeInput from '../components/code-input';
 import { MutationSaveWbOrderArgs } from '../gql/graphql';
-import { useCreateWbOrder, useWbOrderById } from '../features/wb-order-by-id';
+import { useCreateWbOrder } from '../features/wb-order-by-id';
 import { isGraphQLRequestError } from '../utils/graphql/is-graphql-request-error';
-import useIsClient from '../utils/ssr/use-is-client';
 
 const MAX_FILE_SIZE = 5_000_000;
 const ACCEPTED_IMAGE_TYPES = [
@@ -33,9 +40,7 @@ const WbOrder: FC = () => {
   const formRef = useRef<FormikProps<InitialValues>>(null);
   const toast = useToast();
   const toastIdRef = useRef<ToastId | null>(null);
-  const { isClient, key } = useIsClient();
-  const { data } = useWbOrderById('8');
-  console.log({ data });
+  const [isReset, setIsReset] = useState(false);
 
   const Schema = z
     .object({
@@ -111,7 +116,7 @@ const WbOrder: FC = () => {
     QR: null,
   };
 
-  const { mutateAsync: createOrder } = useCreateWbOrder();
+  const { mutateAsync: createOrder, data } = useCreateWbOrder();
 
   const handleSubmit: HandleSubmitProps = async (values, actions) => {
     try {
@@ -157,6 +162,8 @@ const WbOrder: FC = () => {
         duration: 5000,
         isClosable: true,
       });
+
+      setIsReset(true);
     } catch (error: unknown) {
       if (isGraphQLRequestError(error)) {
         if (toastIdRef.current) {
@@ -188,9 +195,11 @@ const WbOrder: FC = () => {
     }
   };
 
-  return (
+  let content: ReactNode | null = null;
+
+  content = (
     <Center flex='1'>
-      <Container maxW={'600px'} flex='1'>
+      <Container maxW={'600px'} flex='1' py={[6, 8, 10]}>
         <Formik
           initialValues={initialValues}
           onSubmit={handleSubmit}
@@ -206,40 +215,44 @@ const WbOrder: FC = () => {
                   placeholder={'Иванов Иван Иванович'}
                   label='ФИО'
                   name='FLP'
+                  focusBorderColor='pink.400'
+                  variant='filled'
                 />
                 <PhoneInput
-                  key={key}
                   label='Телефон'
                   name='phone'
                   placeholder='Ваш телефон'
+                  focusBorderColor='pink.400'
+                  variant='filled'
                 />
 
-                {isClient && (
-                  <>
-                    <Center mt={5} mb={1}>
-                      <Heading size='sm'>Если мобильное приложение Wb</Heading>
-                    </Center>
-                    <FileInput
-                      placeholder={'Прикрепите фотографию'}
-                      label='QR-код для получения заказа'
-                      accept='.png,.jpg,.jpeg,.webp'
-                      name='QR'
-                    />
-                    <Center mt={5} mb={1}>
-                      <Heading size='sm'>Если Wb с компьютера</Heading>
-                    </Center>
-                    <CodeInput
-                      name='orderCode'
-                      label={'Код для получения заказа'}
-                    />
-                    <PhoneInput
-                      key={key}
-                      label='Телефон Wb'
-                      name='wbPhone'
-                      placeholder='Ваш Wb телефон'
-                    />
-                  </>
-                )}
+                <Center mt={5} mb={1}>
+                  <Heading size='sm'>Если мобильное приложение Wb</Heading>
+                </Center>
+                <FileInput
+                  placeholder={'Прикрепите фотографию'}
+                  label='QR-код для получения заказа'
+                  accept='.png,.jpg,.jpeg,.webp'
+                  name='QR'
+                  focusBorderColor='pink.400'
+                  variant='filled'
+                />
+                <Center mt={5} mb={1}>
+                  <Heading size='sm'>Если Wb с компьютера</Heading>
+                </Center>
+                <CodeInput
+                  name='orderCode'
+                  label={'Код для получения заказа'}
+                  focusBorderColor='pink.400'
+                  variant='filled'
+                />
+                <PhoneInput
+                  label='Телефон Wb'
+                  name='wbPhone'
+                  placeholder='Ваш Wb телефон'
+                  focusBorderColor='pink.400'
+                  variant='filled'
+                />
 
                 <Button
                   type='submit'
@@ -247,7 +260,9 @@ const WbOrder: FC = () => {
                   mt='4'
                   spinnerPlacement='end'
                   loadingText='Отправка заявки'
-                  width={['100%', 'auto']}
+                  colorScheme='pink'
+                  variant='outline'
+                  w='full'
                 >
                   Оформить заявку
                 </Button>
@@ -258,6 +273,94 @@ const WbOrder: FC = () => {
       </Container>
     </Center>
   );
+
+  if (data && isReset) {
+    content = (
+      <Center flex='1'>
+        <Container maxW={'600px'} flex='1'>
+          <Alert
+            status='success'
+            variant='subtle'
+            flexDirection='column'
+            alignItems='center'
+            justifyContent='center'
+            textAlign='center'
+            maxW='container.lg'
+            mx='auto'
+            py='5'
+          >
+            <AlertIcon boxSize='40px' mr={0} />
+            <AlertTitle mt={4} mb={1} fontSize='lg'>
+              Подтверждено!
+            </AlertTitle>
+            <AlertDescription maxWidth='sm'>
+              Заявка оформлена!
+              <Text pt={2}>
+                Ваш идентификатор заявки № {<b>{data.saveWbOrder.id}</b>}
+                <br />
+                Ваши введенные данные:
+                <br />
+                ФИО: <b>{data.saveWbOrder.name}</b>
+                <br />
+                Телефон: <b>{data.saveWbOrder.phone}</b>
+                <br />
+                {data.saveWbOrder.qrCode ? (
+                  <>
+                    {'QR-code:'}{' '}
+                    <LinkBox>
+                      <LinkOverlay
+                        href={`${
+                          import.meta.env.VITE_API_URI
+                        }/assets/qr-codes/${data.saveWbOrder.qrCode}`}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                      >
+                        <Image
+                          width='300px'
+                          mx='auto'
+                          src={`${
+                            import.meta.env.VITE_API_URI
+                          }/assets/qr-codes/${data.saveWbOrder.qrCode}`}
+                          fallbackSrc='/images/no-preview.webp'
+                          alt='qr-code'
+                        />
+                      </LinkOverlay>
+                    </LinkBox>
+                    <br />
+                  </>
+                ) : null}
+                {data.saveWbOrder.orderCode ? (
+                  <>
+                    {'Код получения заказа: '}
+                    {<b>{data.saveWbOrder.orderCode}</b>}
+                    <br />
+                  </>
+                ) : null}
+                {data.saveWbOrder.wbPhone ? (
+                  <>
+                    {'Телефон Wb: '}
+                    {<b>{data.saveWbOrder.wbPhone}</b>}
+                  </>
+                ) : null}
+              </Text>
+            </AlertDescription>
+            <Button
+              mt={6}
+              px={6}
+              py={4}
+              colorScheme='green'
+              variant='outline'
+              onClick={() => setIsReset(false)}
+            >
+              Оформить заявку
+            </Button>
+          </Alert>
+        </Container>
+      </Center>
+    );
+  }
+
+  return content;
 };
 
 export default WbOrder;

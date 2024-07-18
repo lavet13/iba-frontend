@@ -1,30 +1,15 @@
-import { Center, Spinner } from '@chakra-ui/react';
 import { Suspense, lazy } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import suspenseFallbackMap from './suspense-fallback-map';
 import { ConsoleLog } from './utils/debug/console-log';
+import { Loadable } from './loadable';
+
 
 // So in the App.tsx we could import css file which is gonna be in multiple
 // entries. For example, we could import font.css
 
-const Loadable =
-  (
-    Component: React.ComponentType,
-    fallback = (
-      <Center flex='1' width={'full'}>
-        <Spinner />
-      </Center>
-    )
-  ) =>
-  (props: JSX.IntrinsicAttributes) =>
-    (
-      <Suspense fallback={fallback}>
-        <Component {...props} />
-      </Suspense>
-    );
-
 const NotFound = Loadable(lazy(() => import('./pages/layout/__not-found')));
-const Layout = Loadable(lazy(() => import('./pages/layout/__layout')));
+import Layout from './pages/layout/__layout';
 
 const PagePathsWithComponents: Record<string, any> = import.meta.glob(
   './pages/**/[!_]*.tsx'

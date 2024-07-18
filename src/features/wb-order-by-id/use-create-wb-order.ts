@@ -8,7 +8,15 @@ export const useCreateWbOrder = (
 ) => {
   const createWbOrder = graphql(`
     mutation CreateWbOrder($input: WbOrderInput!) {
-      saveWbOrder(input: $input)
+      saveWbOrder(input: $input) {
+        id
+        name
+        phone
+        orderCode
+        qrCode
+        wbPhone
+        status
+      }
     }
   `);
 
