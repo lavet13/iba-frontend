@@ -117,10 +117,14 @@ const WbOrders: FC = () => {
     onOpen: onEditOpen,
     onClose: onEditClose,
   } = useDisclosure();
-  const addedOrderRef = useRef<HTMLTableRowElement | null>(null);
-  const addedOrderIdRef = useRef<string | number | null>(null);
+  const updatedOrderRef = useRef<HTMLTableRowElement | null>(null);
+  const updatedOrderIdRef = useRef<string | number | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const wbOrderIdToEdit = searchParams.get('edit')!;
+  const wbOrderIdToEditRef = useRef<string | null>(null);
+  if (wbOrderIdToEdit !== null) {
+    wbOrderIdToEditRef.current = wbOrderIdToEdit;
+  }
   const {
     data: infWbOrdersResult,
     error: infWbOrdersError,
@@ -152,14 +156,14 @@ const WbOrders: FC = () => {
 
   useEffect(() => {
     setTimeout(() => {
-      if (addedOrderRef.current && addedOrderIdRef.current === wbOrderIdToEdit) {
-        addedOrderRef.current.scrollIntoView({
+      if (updatedOrderIdRef.current == wbOrderIdToEditRef.current) {
+        updatedOrderRef.current?.scrollIntoView({
           behavior: 'smooth',
           block: 'center',
         });
       }
     }, 1);
-  }, [addedOrderRef.current, addedOrderIdRef.current]);
+  }, [updatedOrderRef.current, wbOrderIdToEditRef.current]);
 
   const initialValues: InitialValues = {
     status: wbOrderByIdResult?.wbOrderById?.status ?? '',
@@ -214,6 +218,8 @@ const WbOrders: FC = () => {
         orderCode: wbOrderByIdResult?.wbOrderById?.orderCode ?? null,
       },
     };
+
+    updatedOrderIdRef.current = wbOrderIdToEdit;
 
     if (formRef.current !== null && formRef.current.dirty) {
       updateWbOrder({ ...payload });
@@ -351,10 +357,6 @@ const WbOrders: FC = () => {
                         );
                       }
 
-                      if (variables?.input.id === o.id) {
-                        addedOrderIdRef.current = o.id;
-                      }
-
                       return (
                         <Tr
                           key={o.id}
@@ -362,7 +364,7 @@ const WbOrders: FC = () => {
                           transitionDuration={'fast'}
                           transitionProperty={'common'}
                           {...(variables?.input.id == o.id
-                            ? { bg: bgUpdated, ref: addedOrderRef }
+                            ? { bg: bgUpdated, ref: updatedOrderRef }
                             : {})}
                           {...(newOrder?.id === o.id ? { bg: bgAdded } : {})}
                           _dark={{ _hover: { background: 'gray.700' } }}

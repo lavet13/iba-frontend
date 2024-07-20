@@ -1,3 +1,4 @@
+import loadable from '@loadable/component';
 import {
   Box,
   Button,
@@ -8,16 +9,14 @@ import {
   AlertIcon,
   AlertTitle,
   AlertDescription,
-  Spinner,
 } from '@chakra-ui/react';
 import { QueryErrorResetBoundary } from '@tanstack/react-query';
-import { FC, lazy, Suspense, useEffect, useRef } from 'react';
+import { FC, useEffect, useRef } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { ErrorBoundary } from 'react-error-boundary';
 import { isGraphQLRequestError } from '../../utils/graphql/is-graphql-request-error';
-import { Loadable } from '../../loadable';
-import Header from './__header';
-import Footer from './__footer';
+const Header = loadable(() => import('./__header'));
+const Footer = loadable(() => import('./__footer'));
 
 const Layout: FC = () => {
   return (
