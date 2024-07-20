@@ -1,4 +1,3 @@
-import loadable from '@loadable/component';
 import {
   Box,
   Button,
@@ -15,8 +14,8 @@ import { FC, useEffect, useRef } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { ErrorBoundary } from 'react-error-boundary';
 import { isGraphQLRequestError } from '../../utils/graphql/is-graphql-request-error';
-const Header = loadable(() => import('./__header'));
-const Footer = loadable(() => import('./__footer'));
+import Header from './__header';
+import Footer from './__footer';
 
 const Layout: FC = () => {
   return (

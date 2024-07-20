@@ -1,5 +1,3 @@
-import { Center, Spinner } from '@chakra-ui/react';
-import loadable, { LoadableComponent } from '@loadable/component';
 import { Route, Routes } from 'react-router-dom';
 import suspenseFallbackMap from './suspense-fallback-map';
 import { ConsoleLog } from './utils/debug/console-log';
@@ -7,23 +5,11 @@ import { ConsoleLog } from './utils/debug/console-log';
 // So in the App.tsx we could import css file which is gonna be in multiple
 // entries. For example, we could import font.css
 
-const NotFound = loadable(() => import('./pages/layout/__not-found'), {
-  fallback: (
-    <Center flex='1' width={'full'}>
-      <Spinner />
-    </Center>
-  ),
-});
-const Layout = loadable(() => import('./pages/layout/__layout'), {
-  fallback: (
-    <Center flex='1' width={'full'} height={'100%'}>
-      <Spinner />
-    </Center>
-  ),
-});
+import NotFound from './pages/layout/__not-found';
+import Layout from './pages/layout/__layout';
 
 const PagePathsWithComponents: Record<string, any> = import.meta.glob(
-  './pages/**/[!_]*.tsx'
+  './pages/**/[!_]*.tsx', { eager: true }
 );
 
 ConsoleLog({
@@ -32,37 +18,22 @@ ConsoleLog({
 });
 
 const routes = Object.keys(PagePathsWithComponents).map(path => {
-  const dynamicMatch = path.match(
-    /\.\/pages\/(.*?)\/\[(.*?)\](?:\/(.*?)(?:\/(.*?))?)?\.tsx$/
-  );
+  const dynamicMatch = path.match(/\.\/pages\/(.*?)\/\[(.*?)\](?:\/(.*?)(?:\/(.*?))?)?\.tsx$/);
   ConsoleLog({ dynamicMatch });
   if (dynamicMatch) {
-    const [, routePath, paramName, nestedPath = '', nestedParamName = ''] =
-      dynamicMatch;
+    const [, routePath, paramName, nestedPath = '', nestedParamName = ''] = dynamicMatch;
 
     const nestedPathToUse = nestedPath === 'index' ? '' : nestedPath;
     const nestedParamToUse = nestedParamName ? `:${nestedParamName}` : '';
 
     ConsoleLog({
-      path: `${routePath}/:${paramName}${
-        nestedPathToUse ? `/${nestedPathToUse}${nestedParamToUse}` : ''
-      }`,
+      path: `${routePath}/:${paramName}${nestedPathToUse ? `/${nestedPathToUse}${nestedParamToUse}` : ''}`,
     });
 
     return {
-      name: `${routePath}/${paramName}${
-        nestedPathToUse ? `/${nestedPathToUse}${nestedParamName}` : ''
-      }`,
-      path: `${routePath}/:${paramName}${
-        nestedPathToUse ? `/${nestedPathToUse}${nestedParamToUse}` : ''
-      }`,
-      component: loadable(PagePathsWithComponents[path], {
-        fallback: (
-          <Center flex='1' width={'full'}>
-            <Spinner />
-          </Center>
-        ),
-      }),
+      name: `${routePath}/${paramName}${nestedPathToUse ? `/${nestedPathToUse}${nestedParamName}` : ''}`,
+      path: `${routePath}/:${paramName}${nestedPathToUse ? `/${nestedPathToUse}${nestedParamToUse}` : ''}`,
+      component: PagePathsWithComponents[path].default,
     };
   }
 
@@ -75,13 +46,7 @@ const routes = Object.keys(PagePathsWithComponents).map(path => {
     return {
       name,
       path: lowerName === 'home' ? '/' : `/${lowerName}`,
-      component: loadable(PagePathsWithComponents[path], {
-          fallback: (
-            <Center flex='1' width={'full'}>
-              <Spinner />
-            </Center>
-          ),
-      }),
+      component: PagePathsWithComponents[path].default,
     };
   }
 
@@ -96,7 +61,7 @@ const filteredRoutes = routes.filter(
   ): route is {
     name: string;
     path: string;
-    component: LoadableComponent<unknown>;
+    component: (props: JSX.IntrinsicAttributes) => JSX.Element;
   } => route !== null
 );
 
