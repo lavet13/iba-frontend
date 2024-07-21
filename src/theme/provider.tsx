@@ -1,12 +1,22 @@
-import { FC, PropsWithChildren } from "react";
-import { ChakraProvider as Provider } from "@chakra-ui/react";
+import { FC, PropsWithChildren } from 'react';
+import {
+  ChakraProvider as Provider,
+  cookieStorageManagerSSR,
+  localStorageManager,
+} from '@chakra-ui/react';
 
 import theme from '.';
 
-export const ChakraProvider: FC<PropsWithChildren> = ({ children }) => {
-  console.log({ theme });
-  return (
-    <Provider theme={theme}>{children}</Provider>
-  );
-};
+type ChakraProviderProps = PropsWithChildren & { cookies?: string };
 
+export const ChakraProvider: FC<ChakraProviderProps> = ({
+  cookies,
+  children,
+}) => {
+  const colorModeManager =
+    typeof cookies === 'string'
+      ? cookieStorageManagerSSR(cookies)
+      : localStorageManager;
+
+  return <Provider theme={theme} colorModeManager={colorModeManager}>{children}</Provider>;
+};

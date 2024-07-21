@@ -1,6 +1,8 @@
 import { Route, Routes } from 'react-router-dom';
 import suspenseFallbackMap from './suspense-fallback-map';
 import { ConsoleLog } from './utils/debug/console-log';
+import { Loadable } from './loadable';
+import { lazy } from 'react';
 
 // So in the App.tsx we could import css file which is gonna be in multiple
 // entries. For example, we could import font.css
@@ -9,7 +11,7 @@ import NotFound from './pages/layout/__not-found';
 import Layout from './pages/layout/__layout';
 
 const PagePathsWithComponents: Record<string, any> = import.meta.glob(
-  './pages/**/[!_]*.tsx', { eager: true }
+  './pages/**/[!_]*.tsx',
 );
 
 ConsoleLog({
@@ -33,7 +35,7 @@ const routes = Object.keys(PagePathsWithComponents).map(path => {
     return {
       name: `${routePath}/${paramName}${nestedPathToUse ? `/${nestedPathToUse}${nestedParamName}` : ''}`,
       path: `${routePath}/:${paramName}${nestedPathToUse ? `/${nestedPathToUse}${nestedParamToUse}` : ''}`,
-      component: PagePathsWithComponents[path].default,
+      component: Loadable(lazy(PagePathsWithComponents[path])),
     };
   }
 
@@ -46,7 +48,7 @@ const routes = Object.keys(PagePathsWithComponents).map(path => {
     return {
       name,
       path: lowerName === 'home' ? '/' : `/${lowerName}`,
-      component: PagePathsWithComponents[path].default,
+      component: Loadable(lazy(PagePathsWithComponents[path]), fallback),
     };
   }
 
