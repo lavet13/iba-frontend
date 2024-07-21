@@ -18,5 +18,9 @@ export const ChakraProvider: FC<ChakraProviderProps> = ({
       ? cookieStorageManagerSSR(cookies)
       : localStorageManager;
 
-  return <Provider theme={theme} colorModeManager={colorModeManager}>{children}</Provider>;
+  return (
+    <Provider theme={theme} colorModeManager={colorModeManager}>
+      {children}
+    </Provider>
+  );
 };

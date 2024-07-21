@@ -11,7 +11,7 @@ export function render(
   req: Request,
   res: Response,
   bootstrap: string,
-  url: string,
+  url: string
 ) {
   const cookies = req.headers.cookie ?? '';
 
@@ -32,6 +32,6 @@ export function render(
         pipe(res);
       },
       bootstrapModules: [bootstrap],
-    },
+    }
   );
 }
