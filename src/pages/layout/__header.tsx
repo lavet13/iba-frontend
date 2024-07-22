@@ -12,6 +12,8 @@ import {
   Icon,
   SimpleGrid,
   Box,
+  useColorModeValue,
+  cssVar,
 } from '@chakra-ui/react';
 import { FC } from 'react';
 import { HiMenu } from 'react-icons/hi';
@@ -79,6 +81,7 @@ const Header: FC = () => {
       <Flex pt='1.5' align={'center'} minH={'58px'} overflow='auto'>
         <NavLink
           to={'/'}
+          size={'sm'}
           colorScheme='teal'
           onClick={() => {
             onClose();
@@ -114,41 +117,54 @@ const Header: FC = () => {
 
   console.log({ isNotAtTop });
 
+  const { reference: gray700 } = cssVar('chakra-colors-gray-700');
+  const { reference: gray300 } = cssVar('chakra-colors-gray-300');
+  const borderBottom = useColorModeValue(
+    `1px solid ${gray300}`,
+    `1px solid ${gray700}`
+  );
+
   return (
     <>
-    <Box height={'1px'} />
-    <Box
-      ref={headerRef}
-      bg='chakra-body-bg'
-      position='sticky'
-      top='0'
-      zIndex='100'
-      w='full'
-      minH={isNotLargerAndIsOpen ? '100vh' : 'auto'}
-      boxShadow={isNotAtTop ? 'none' : 'sm'}
-      transitionTimingFunction={'ease-in-out'}
-      transitionDuration={'fast'}
-      transitionProperty={'common'}
-    >
-      {isNotLargerAndIsOpen ? (
-        <Flex direction='column' gap='4' h={'100vh'}>
-          {content}
-          <SimpleGrid
-            px={2}
-            alignItems={'center'}
-            spacing={'20px'}
-            minChildWidth={'200px'}
-            overflow='auto'
-          >
-            {buttons.map((button, idx) => (
-              <Fragment key={idx}>{button}</Fragment>
-            ))}
-          </SimpleGrid>
-        </Flex>
-      ) : (
-        content
-      )}
-    </Box>
+      <Box height={'1px'} />
+      <Box
+        ref={headerRef}
+        bg='chakra-body-bg'
+        position='sticky'
+        top='0'
+        zIndex='100'
+        w='full'
+        minH={isNotLargerAndIsOpen ? '100vh' : 'auto'}
+        borderBottom={
+          isNotLargerAndIsOpen
+            ? '1px solid transparent'
+            : isNotAtTop
+            ? '1px solid transparent'
+            : borderBottom
+        }
+        transitionTimingFunction={'ease-in-out'}
+        transitionDuration={'fast'}
+        transitionProperty={'common'}
+      >
+        {isNotLargerAndIsOpen ? (
+          <Flex direction='column' gap='4' h={'100vh'}>
+            {content}
+            <SimpleGrid
+              px={2}
+              alignItems={'center'}
+              spacing={'20px'}
+              minChildWidth={'200px'}
+              overflow='auto'
+            >
+              {buttons.map((button, idx) => (
+                <Fragment key={idx}>{button}</Fragment>
+              ))}
+            </SimpleGrid>
+          </Flex>
+        ) : (
+          content
+        )}
+      </Box>
     </>
   );
 };

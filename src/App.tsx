@@ -7,7 +7,7 @@ import { lazy } from 'react';
 // So in the App.tsx we could import css file which is gonna be in multiple
 // entries. For example, we could import font.css
 
-import NotFound from './pages/layout/__not-found';
+const NotFound = Loadable(lazy(() => import('./pages/layout/__not-found')));
 import Layout from './pages/layout/__layout';
 
 const PagePathsWithComponents: Record<string, any> = import.meta.glob(

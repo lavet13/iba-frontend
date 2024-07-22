@@ -58,7 +58,7 @@ const AccountMenu: FC<AccountMenuProps> = ({ onClose }) => {
       <MenuButton
         as={Button}
         colorScheme='teal'
-        variant="solid"
+        variant="outline"
         size={['md', null, 'sm']}
         isLoading={getMePending || isRefetching}
         isDisabled={getMePending || isRefetching}

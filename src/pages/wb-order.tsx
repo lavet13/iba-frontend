@@ -27,6 +27,8 @@ import CodeInput from '../components/code-input';
 import { MutationSaveWbOrderArgs } from '../gql/graphql';
 import { useCreateWbOrder } from '../features/wb-order-by-id';
 import { isGraphQLRequestError } from '../utils/graphql/is-graphql-request-error';
+import { Persist } from '../components/persist-form';
+import { useNavigate } from 'react-router-dom';
 
 const MAX_FILE_SIZE = 5_000_000;
 const ACCEPTED_IMAGE_TYPES = [
@@ -39,6 +41,7 @@ const ACCEPTED_IMAGE_TYPES = [
 const WbOrder: FC = () => {
   const formRef = useRef<FormikProps<InitialValues>>(null);
   const toast = useToast();
+  const navigate = useNavigate();
   const toastIdRef = useRef<ToastId | null>(null);
   const [isReset, setIsReset] = useState(false);
 
@@ -148,8 +151,8 @@ const WbOrder: FC = () => {
       ConsoleLog({ payload });
 
       await createOrder({ ...payload });
-      actions.setStatus('submitted');
       actions.resetForm();
+      actions.setStatus('submitted');
 
       if (toastIdRef.current) {
         toast.close(toastIdRef.current);
@@ -266,6 +269,8 @@ const WbOrder: FC = () => {
                 >
                   Оформить заявку
                 </Button>
+
+                <Persist name='wb-order' />
               </Form>
             );
           }}

@@ -3,13 +3,14 @@ import {
   NavLink as RouterNavLink,
   NavLinkProps as RouterNavLinkProps,
 } from 'react-router-dom';
-import { Button, ButtonProps } from '@chakra-ui/react';
+import { Button, ButtonProps, Link } from '@chakra-ui/react';
 
 type NavLinkProps = ButtonProps & RouterNavLinkProps & PropsWithChildren;
 
 const NavLink: FC<NavLinkProps> = ({ to, children, ...props }) => {
   return (
-    <RouterNavLink to={to} style={{ flex: 0.5 }}>
+    <Link as={RouterNavLink} to={to} sx={{ flex: ['0.1', '0.2'] }}>
+      {/* @ts-ignore */}
       {({ isActive }) =>
         isActive ? (
           <Button
@@ -31,7 +32,7 @@ const NavLink: FC<NavLinkProps> = ({ to, children, ...props }) => {
           </Button>
         )
       }
-    </RouterNavLink>
+    </Link>
   );
 };
 

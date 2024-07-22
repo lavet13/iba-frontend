@@ -45,9 +45,8 @@ to bundle CSS into JS file.
 [preamble]: https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/src/fast-refresh.ts#L30
 
 ## Planning:
-- implement search by phone or phoneWb or `ФИО`
+- implement search by phone or phoneWb or `ФИО` or ID
 - Query Key Factory
-- Disable retry only for specific status code
 - adaptive header
 - sticky stuff(if needed)
 

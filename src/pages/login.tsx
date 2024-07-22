@@ -59,12 +59,12 @@ const Login: FC = () => {
     }
   }, []);
 
-  const handleSubmit: HandleSubmitProps = async values => {
+  const handleSubmit: HandleSubmitProps = async (values, actions) => {
     if (isFormRefNotNull(formRef)) {
       try {
         await loginUser({ loginInput: values });
-        formRef.current.resetForm();
-        formRef.current.setStatus('submitted');
+        actions.resetForm();
+        actions.setStatus('submitted');
         refetch(); // refetching user
 
         if (toastIdRef.current) {
@@ -78,6 +78,7 @@ const Login: FC = () => {
           duration: 2000,
           isClosable: true,
         });
+
         navigate('/');
       } catch (error: unknown) {
         if (isGraphQLRequestError(error)) {
@@ -103,9 +104,9 @@ const Login: FC = () => {
             isClosable: true,
           });
         }
-        formRef.current.setStatus('error');
+        actions.setStatus('error');
       } finally {
-        formRef.current.setSubmitting(false);
+        actions.setSubmitting(false);
       }
     }
   };
