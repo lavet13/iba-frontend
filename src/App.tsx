@@ -1,7 +1,7 @@
 import { Route, Routes } from 'react-router-dom';
 import suspenseFallbackMap from './suspense-fallback-map';
 import { ConsoleLog } from './utils/debug/console-log';
-import { Loadable } from './loadable';
+import { Loadable } from './utils/ssr/loadable';
 import { lazy } from 'react';
 
 // So in the App.tsx we could import css file which is gonna be in multiple

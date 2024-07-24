@@ -15,7 +15,7 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { Form, Formik, FormikHelpers, FormikProps } from 'formik';
-import { FC, ReactNode, useRef, useState } from 'react';
+import { FC, ReactNode, useRef, useState, useEffect } from 'react';
 import { z } from 'zod';
 import { toFormikValidationSchema } from 'zod-formik-adapter';
 import FileInput from '../components/file-input';
@@ -44,6 +44,7 @@ const WbOrder: FC = () => {
   const navigate = useNavigate();
   const toastIdRef = useRef<ToastId | null>(null);
   const [isReset, setIsReset] = useState(false);
+  const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
 
   const Schema = z
     .object({
@@ -120,6 +121,28 @@ const WbOrder: FC = () => {
   };
 
   const { mutateAsync: createOrder, data } = useCreateWbOrder();
+  console.log({ qrCodeUrl });
+
+  useEffect(() => {
+    if (data?.saveWbOrder.qrCodeFile) {
+      const type = data.saveWbOrder.qrCodeFile.type as string;
+      const buffer = data.saveWbOrder.qrCodeFile.buffer;
+      console.log({ type, buffer });
+
+      if(typeof buffer === 'object' && 'data' in buffer) {
+        const uint8Array = new Uint8Array(buffer.data);
+
+        const base64 = btoa(
+          uint8Array.reduce((data, byte) => data + String.fromCharCode(byte), '')
+        );
+
+        const dataUrl = `data:${type};base64,${base64}`;
+        setQrCodeUrl(dataUrl);
+      } else {
+        console.error('Received buffer is not in the expected format');
+      }
+    }
+  }, [data]);
 
   const handleSubmit: HandleSubmitProps = async (values, actions) => {
     try {
@@ -150,9 +173,10 @@ const WbOrder: FC = () => {
       };
       ConsoleLog({ payload });
 
-      await createOrder({ ...payload });
+      const createdOrder = await createOrder({ ...payload });
       actions.resetForm();
       actions.setStatus('submitted');
+      console.log({ createdOrder });
 
       if (toastIdRef.current) {
         toast.close(toastIdRef.current);
@@ -313,23 +337,13 @@ const WbOrder: FC = () => {
                   <>
                     {'QR-code:'}{' '}
                     <LinkBox>
-                      <LinkOverlay
-                        href={`${
-                          import.meta.env.VITE_API_URI
-                        }/assets/qr-codes/${data.saveWbOrder.qrCode}`}
-                        target='_blank'
-                        rel='noopener noreferrer'
-                      >
-                        <Image
-                          width='300px'
-                          mx='auto'
-                          src={`${
-                            import.meta.env.VITE_API_URI
-                          }/assets/qr-codes/${data.saveWbOrder.qrCode}`}
-                          fallbackSrc='/images/no-preview.webp'
-                          alt='qr-code'
-                        />
-                      </LinkOverlay>
+                      <Image
+                        width='300px'
+                        mx='auto'
+                        src={qrCodeUrl ?? ''}
+                        // fallbackSrc='/images/no-preview.webp'
+                        alt='qr-code'
+                      />
                     </LinkBox>
                     <br />
                   </>

@@ -14,6 +14,8 @@ import { graphql } from '../../gql';
 import { client } from '../../graphql-client';
 import queryClient from '../../react-query/query-client';
 import { take } from '../../pages/admin/wb-orders';
+import { useNavigate } from 'react-router-dom';
+import { isGraphQLRequestError } from '../../utils/graphql/is-graphql-request-error';
 
 export const useUpdateWbOrder = (
   options?: UseMutationOptions<
@@ -22,6 +24,8 @@ export const useUpdateWbOrder = (
     UpdateWbOrderMutationVariables
   >
 ) => {
+  const navigate = useNavigate();
+
   const updateWbOrder = graphql(`
     mutation UpdateWbOrder($input: UpdateWbInput!) {
       updateWbOrder(input: $input) {
@@ -39,8 +43,19 @@ export const useUpdateWbOrder = (
   `);
 
   return useMutation({
-    mutationFn: (variables: UpdateWbOrderMutationVariables) => {
-      return client.request(updateWbOrder, variables);
+    mutationFn: async (variables: UpdateWbOrderMutationVariables) => {
+      try {
+        return await client.request(updateWbOrder, variables);
+      } catch(error) {
+        if (
+          isGraphQLRequestError(error) &&
+          error.response.errors[0].extensions.code === 'UNAUTHENTICATED'
+        ) {
+          navigate('/');
+        }
+
+        throw error;
+      }
     },
     // @ts-ignore
     async onMutate(variables) {

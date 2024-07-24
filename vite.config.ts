@@ -68,6 +68,11 @@ export default defineConfig(({ command, mode }) => {
       dynamicImport(),
     ],
 
+    server: {
+      port: 5173,
+      strictPort: true,
+    },
+
     build: {
       minify: true,
       cssCodeSplit: true,

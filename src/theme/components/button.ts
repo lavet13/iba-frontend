@@ -4,10 +4,10 @@ const Button = defineStyleConfig({
   baseStyle: _ => {
     return {
       _loading: {
-        cursor: 'not-allowed',
+        cursor: 'pointer',
       },
       _disabled: {
-        cursor: 'not-allowed',
+        cursor: 'pointer',
       },
     };
   },

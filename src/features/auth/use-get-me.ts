@@ -26,16 +26,22 @@ export const useGetMe = (options?: InitialDataOptions<MeQuery>) => {
     queryFn: async () => {
       try {
         return await client.request(me);
-      } catch(error) {
+      } catch (error) {
         import.meta.env.DEV && console.error('HELP?', error);
-        if(isGraphQLRequestError(error) && error.response.errors[0].extensions.code === 'AUTHENTICATION_REQUIRED') {
+        if (
+          isGraphQLRequestError(error) &&
+          error.response.errors[0].extensions.code === 'AUTHENTICATION_REQUIRED'
+        ) {
           queryClient.setQueryData(['Me'], null);
           console.warn('Session timeout!');
 
           console.log('navigation fired!');
           navigate('/');
         }
-        if (isGraphQLRequestError(error) && error.response.errors[0].extensions.code === 'UNAUTHENTICATED') {
+        if (
+          isGraphQLRequestError(error) &&
+          error.response.errors[0].extensions.code === 'UNAUTHENTICATED'
+        ) {
           queryClient.setQueryData(['Me'], null);
           console.warn('Unauthenticated!');
         }

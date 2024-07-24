@@ -17,6 +17,7 @@ export const useNewWbOrderSubscription = () => {
         name
         phone
         qrCode
+        qrCodeFile
         orderCode
         wbPhone
         status
@@ -39,7 +40,6 @@ export const useNewWbOrderSubscription = () => {
     });
 
     eventSource.addEventListener('error', e => {
-      console.error('SSE error: ', e);
       setError(new Error('SSE connection error'));
       eventSource.close();
     });

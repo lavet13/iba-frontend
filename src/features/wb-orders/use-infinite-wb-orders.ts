@@ -3,15 +3,27 @@ import { graphql } from '../../gql';
 import { client } from '../../graphql-client';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { InitialDataInfiniteOptions } from '../../utils/graphql/initial-data-infinite-options';
+import { useNavigate } from 'react-router-dom';
+import { isGraphQLRequestError } from '../../utils/graphql/is-graphql-request-error';
+import { OrderStatus } from '../../gql/graphql';
 
 type TPageParam = {
   after: number | null;
 };
 
-export const useInfiniteWbOrders = (
+type UseInfiniteWbOrdersProps = {
+  take: number;
+  status?: OrderStatus | 'ALL';
+  options?: InitialDataInfiniteOptions<WbOrdersQuery, TPageParam>;
+};
+
+export const useInfiniteWbOrders = ({
   take = 30,
-  options?: InitialDataInfiniteOptions<WbOrdersQuery, TPageParam>
-) => {
+  status = 'ALL',
+  options,
+}: UseInfiniteWbOrdersProps) => {
+  const navigate = useNavigate();
+
   const wbOrders = graphql(`
     query WbOrders($input: WbOrdersInput!) {
       wbOrders(input: $input) {
@@ -38,17 +50,39 @@ export const useInfiniteWbOrders = (
   `);
 
   return useInfiniteQuery({
-    queryKey: [(wbOrders.definitions[0] as any).name.value, { input: { take } }],
-    queryFn: ({ pageParam }) => {
-      return client.request(wbOrders, { input: { take, after: pageParam.after } });
+    queryKey: [
+      (wbOrders.definitions[0] as any).name.value,
+      { input: { take, status } },
+    ],
+    queryFn: async ({ pageParam }) => {
+      try {
+        return await client.request(wbOrders, {
+          input: {
+            take,
+            after: pageParam.after,
+            ...(status === 'ALL' ? {} : { status }),
+          },
+        });
+      } catch (error) {
+        if (
+          isGraphQLRequestError(error) &&
+          error.response.errors[0].extensions.code === 'UNAUTHENTICATED'
+        ) {
+          navigate('/');
+        }
+
+        throw error;
+      }
     },
-    getNextPageParam: (lastPage) => {
+    getNextPageParam: lastPage => {
       return lastPage.wbOrders.pageInfo.hasNextPage
         ? { after: lastPage.wbOrders.pageInfo.endCursor }
         : undefined;
     },
     initialPageParam: { after: null },
+    meta: {
+      toastEnabled: false,
+    },
     ...options,
   });
 };
-

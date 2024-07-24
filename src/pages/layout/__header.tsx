@@ -1,4 +1,4 @@
-import { Fragment, useEffect } from 'react';
+import { Fragment, useEffect, useTransition } from 'react';
 import {
   ButtonGroup,
   CloseButton,
@@ -14,6 +14,7 @@ import {
   Box,
   useColorModeValue,
   cssVar,
+  useColorMode,
 } from '@chakra-ui/react';
 import { FC } from 'react';
 import { HiMenu } from 'react-icons/hi';
@@ -21,15 +22,19 @@ import { useGetMe } from '../../features/auth';
 import AccountMenu from '../../components/account-menu';
 import NavLink from '../../components/nav-link';
 import useIntersectionObserver from '../../hooks/use-intersection-observer';
+import { HiMoon } from 'react-icons/hi2';
+import { HiMiniSun } from 'react-icons/hi2';
 
 const Header: FC = () => {
-  const { error, data: getMeResult } = useGetMe();
+  const { data: getMeResult } = useGetMe();
   const theme = useTheme();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isLargerThanMd] = useMediaQuery(
     `(min-width: ${theme.breakpoints.md})`,
     { ssr: true, fallback: false }
   );
+  const [isPending, startTransition] = useTransition();
+  const { colorMode, toggleColorMode } = useColorMode();
 
   const [headerRef, isNotAtTop] = useIntersectionObserver({
     threshold: 1,
@@ -79,16 +84,30 @@ const Header: FC = () => {
   let content = (
     <Container>
       <Flex pt='1.5' align={'center'} minH={'58px'} overflow='auto'>
-        <NavLink
-          to={'/'}
-          size={'sm'}
-          colorScheme='teal'
-          onClick={() => {
-            onClose();
-          }}
-        >
-          Главная
-        </NavLink>
+        <ButtonGroup>
+          <NavLink
+            to={'/'}
+            size={'sm'}
+            colorScheme='teal'
+            onClick={() => {
+              onClose();
+            }}
+          >
+            Главная
+          </NavLink>
+          <IconButton
+            isLoading={isPending}
+            variant='ghost'
+            onClick={() =>
+              startTransition(() => {
+                toggleColorMode();
+              })
+            }
+            size='sm'
+            aria-label='Color Mode'
+            icon={colorMode === 'light' ? <Icon as={HiMiniSun} boxSize={5} /> : <Icon as={HiMoon} boxSize={4} />}
+          />
+        </ButtonGroup>
         <Spacer />
         {isLargerThanMd ? (
           <ButtonGroup alignItems='center' gap='2'>

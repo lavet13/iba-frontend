@@ -26,18 +26,12 @@ import {
   Button,
   LinkBox,
   LinkOverlay,
-  useClipboard,
-  Text,
-  Icon,
-  Flex,
-  FormControl,
-  FormLabel,
   Link,
   useColorModeValue,
 } from '@chakra-ui/react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { FC, Fragment, useEffect, useRef } from 'react';
+import { FC, Fragment, useEffect, useRef, useState, useTransition } from 'react';
 import { useInfiniteWbOrders } from '../../features/wb-orders';
 import { Waypoint } from 'react-waypoint';
 import { MutationUpdateWbOrderArgs, OrderStatus } from '../../gql/graphql';
@@ -51,12 +45,10 @@ import SelectWrapper from '../../components/select-wrapper';
 import { z } from 'zod';
 import { toFormikValidationSchema } from 'zod-formik-adapter';
 import { ConsoleLog } from '../../utils/debug/console-log';
-import TextInput from '../../components/text-input';
-import { HiClipboard, HiClipboardCheck } from 'react-icons/hi';
 import ClipboardInput from '../../components/clipboard-input';
 import queryClient from '../../react-query/query-client';
 import { useNewWbOrderSubscription } from '../../hooks/use-new-wb-order-subscription';
-import useIsClient from '../../utils/ssr/use-is-client';
+import AutoSubmit from '../../components/auto-submit';
 
 type HandleSubmitProps = (
   values: InitialValues,
@@ -111,7 +103,8 @@ type InitialValues = FormSchema & { status: StatusKey | '' };
 export const take = 30;
 
 const WbOrders: FC = () => {
-  const formRef = useRef<FormikProps<InitialValues>>(null);
+  const formModalRef = useRef<FormikProps<InitialValues>>(null);
+  const formSortRef = useRef<FormikProps<{ sortStatus: OrderStatus | 'ALL' }>>(null);
   const {
     isOpen: isEditOpen,
     onOpen: onEditOpen,
@@ -125,6 +118,11 @@ const WbOrders: FC = () => {
   if (wbOrderIdToEdit !== null) {
     wbOrderIdToEditRef.current = wbOrderIdToEdit;
   }
+  const [sortStatus, setSortStatus] = useState<OrderStatus | 'ALL'>(
+    formSortRef.current?.values.sortStatus ?? 'ALL'
+  );
+  const [isPending, startTransition] = useTransition();
+  console.log({ sortStatus });
   const {
     data: infWbOrdersResult,
     error: infWbOrdersError,
@@ -136,9 +134,10 @@ const WbOrders: FC = () => {
     isFetchingNextPage,
     fetchStatus: fetchStatusInfinite,
     status: statusInfinite,
-  } = useInfiniteWbOrders(take);
+  } = useInfiniteWbOrders({ take, status: sortStatus });
 
   const { newOrder, error } = useNewWbOrderSubscription();
+  console.log({ newOrder });
 
   useEffect(() => {
     newOrder && queryClient.invalidateQueries({ queryKey: ['WbOrders'] });
@@ -182,7 +181,7 @@ const WbOrders: FC = () => {
   };
 
   const handleEditClose = () => {
-    if (formRef.current !== null) {
+    if (formModalRef.current !== null) {
       onEditClose();
       setSearchParams(params => {
         const query = new URLSearchParams(params.toString());
@@ -221,7 +220,7 @@ const WbOrders: FC = () => {
 
     updatedOrderIdRef.current = wbOrderIdToEdit;
 
-    if (formRef.current !== null && formRef.current.dirty) {
+    if (formModalRef.current !== null && formModalRef.current.dirty) {
       updateWbOrder({ ...payload });
     }
 
@@ -244,6 +243,33 @@ const WbOrders: FC = () => {
 
   return (
     <>
+      <Formik
+        initialValues={{ sortStatus }}
+        onSubmit={(values, __) => {
+          startTransition(() => {
+            setSortStatus(values.sortStatus);
+          });
+        }}
+        innerRef={formSortRef}
+      >
+        {({ values, submitForm }) => (
+          <Form>
+            <SelectWrapper
+              isLoading={isPending}
+              name='sortStatus'
+              label='Сортировать по статусу'
+              placeholder='Выберите статус'
+              data={[
+                { label: 'ВСЕ', value: 'ALL' },
+                { label: 'СОБРАН', value: 'ASSEMBLED' },
+                { label: 'НЕ СОБРАН', value: 'NOT_ASSEMBLED' },
+                { label: 'ОТКЛОНЕН', value: 'REJECTED' },
+              ]}
+            />
+            <AutoSubmit values={values} submitForm={submitForm} />
+          </Form>
+        )}
+      </Formik>
       {isPendingInfinite ? (
         <TableContainer>
           <Table variant='simple' size='sm'>
@@ -368,7 +394,10 @@ const WbOrders: FC = () => {
                             : {})}
                           {...(newOrder?.id === o.id ? { bg: bgAdded } : {})}
                           _dark={{ _hover: { background: 'gray.700' } }}
-                          _hover={{ background: 'gray.100', cursor: 'pointer' }}
+                          _hover={{
+                            background: 'gray.100',
+                            cursor: 'pointer',
+                          }}
                         >
                           <Td onClick={handleEditOpen(o.id)} isNumeric>
                             {o.id}
@@ -376,22 +405,30 @@ const WbOrders: FC = () => {
                           <Td onClick={handleEditOpen(o.id)}>{o.name}</Td>
                           <Td onClick={handleEditOpen(o.id)}>{o.phone}</Td>
                           <LinkBox as={Td}>
-                            <LinkOverlay
-                              href={`${
-                                import.meta.env.VITE_API_URI
-                              }/assets/qr-codes/${o.qrCode}`}
-                              target='_blank'
-                              rel='noopener noreferrer'
-                            >
-                              <Image
-                                width='60px'
-                                src={`${
+                            {o.qrCode ? (
+                              <LinkOverlay
+                                href={`${
                                   import.meta.env.VITE_API_URI
                                 }/assets/qr-codes/${o.qrCode}`}
-                                fallbackSrc='/images/no-preview.webp'
+                                target={'_blank'}
+                                rel='noopener noreferrer'
+                              >
+                                <Image
+                                  width='60px'
+                                  src={`${
+                                    import.meta.env.VITE_API_URI
+                                  }/assets/qr-codes/${o.qrCode}`}
+                                  fallbackSrc='/images/no-preview.webp'
+                                  alt='qr-code'
+                                />
+                              </LinkOverlay>
+                            ) : (
+                              <Image
+                                width='60px'
+                                src={`/images/no-preview.webp`}
                                 alt='qr-code'
                               />
-                            </LinkOverlay>
+                            )}
                           </LinkBox>
                           <Td onClick={handleEditOpen(o.id)} isNumeric>
                             {o.orderCode}
@@ -517,7 +554,7 @@ const WbOrders: FC = () => {
                   validationSchema={toFormikValidationSchema(Schema)}
                   enableReinitialize={true}
                   onSubmit={handleSubmit}
-                  innerRef={formRef}
+                  innerRef={formModalRef}
                 >
                   {({ isSubmitting }) => {
                     return (

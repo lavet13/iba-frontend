@@ -14,6 +14,7 @@ export const useCreateWbOrder = (
         phone
         orderCode
         qrCode
+        qrCodeFile
         wbPhone
         status
       }
