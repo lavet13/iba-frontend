@@ -15,31 +15,43 @@ import {
   useColorModeValue,
   cssVar,
   useColorMode,
+  Drawer,
+  DrawerOverlay,
+  DrawerHeader,
+  DrawerContent,
+  DrawerCloseButton,
+  DrawerBody,
 } from '@chakra-ui/react';
 import { FC } from 'react';
-import { HiMenu } from 'react-icons/hi';
+import { HiMenu, HiOutlineMoon, HiOutlineSun } from 'react-icons/hi';
 import { useGetMe } from '../../features/auth';
 import AccountMenu from '../../components/account-menu';
 import NavLink from '../../components/nav-link';
 import useIntersectionObserver from '../../hooks/use-intersection-observer';
-import { HiMoon } from 'react-icons/hi2';
-import { HiMiniSun } from 'react-icons/hi2';
 
 const Header: FC = () => {
   const { data: getMeResult } = useGetMe();
   const theme = useTheme();
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [isLargerThanMd] = useMediaQuery(
-    `(min-width: ${theme.breakpoints.md})`,
+  const [isLargerThanSm] = useMediaQuery(
+    `(min-width: ${theme.breakpoints.sm})`,
     { ssr: true, fallback: false }
   );
-  const [isPending, startTransition] = useTransition();
+  const [isLargerThanMd] = useMediaQuery(
+    `(min-width: ${theme.breakpoints.md})`,
+    {
+      ssr: true,
+      fallback: false,
+    }
+  );
   const { colorMode, toggleColorMode } = useColorMode();
 
   const [headerRef, isNotAtTop] = useIntersectionObserver({
     threshold: 1,
     rootMargin: '-1px 0px 0px 0px',
   });
+
+  const isNotLargerAndIsOpen = (!isLargerThanSm || !isLargerThanMd) && isOpen;
 
   useEffect(() => {
     const body = document.body;
@@ -53,9 +65,7 @@ const Header: FC = () => {
     return () => {
       body.style.overflow = 'auto';
     };
-  }, [isOpen, isLargerThanMd]);
-
-  const isNotLargerAndIsOpen = !isLargerThanMd && isOpen;
+  }, [isOpen, isLargerThanSm, isLargerThanMd]);
 
   const buttons = [
     getMeResult?.me && getMeResult.me.role === 'ADMIN' && (
@@ -64,7 +74,6 @@ const Header: FC = () => {
         onClick={() => {
           onClose();
         }}
-        colorScheme='teal'
       >
         Заявки WB
       </NavLink>
@@ -88,7 +97,6 @@ const Header: FC = () => {
           <NavLink
             to={'/'}
             size={'sm'}
-            colorScheme='teal'
             onClick={() => {
               onClose();
             }}
@@ -96,26 +104,45 @@ const Header: FC = () => {
             Главная
           </NavLink>
           <IconButton
-            isLoading={isPending}
             variant='ghost'
             onClick={() =>
-              startTransition(() => {
-                toggleColorMode();
-              })
+              toggleColorMode()
             }
             size='sm'
             aria-label='Color Mode'
-            icon={colorMode === 'light' ? <Icon as={HiMiniSun} boxSize={5} /> : <Icon as={HiMoon} boxSize={4} />}
+            icon={
+              colorMode === 'light' ? (
+                <Icon as={HiOutlineMoon} boxSize={4} />
+              ) : (
+                <Icon as={HiOutlineSun} boxSize={5} />
+              )
+            }
           />
         </ButtonGroup>
         <Spacer />
-        {isLargerThanMd ? (
+        {isLargerThanMd && (
           <ButtonGroup alignItems='center' gap='2'>
             {buttons.map((button, idx) => (
               <Fragment key={idx}>{button}</Fragment>
             ))}
           </ButtonGroup>
-        ) : (
+        )}
+        {isLargerThanSm && !isLargerThanMd && (
+          <>
+            {!isOpen ? (
+              <IconButton
+                size='sm'
+                variant='outline'
+                icon={<Icon as={HiMenu} boxSize={5} />}
+                aria-label={'Open menu'}
+                onClick={onOpen}
+              />
+            ) : (
+              <CloseButton onClick={onClose} size='md' />
+            )}
+          </>
+        )}
+        {isLargerThanSm ? null : (
           <>
             {!isOpen ? (
               <IconButton
@@ -134,8 +161,6 @@ const Header: FC = () => {
     </Container>
   );
 
-  console.log({ isNotAtTop });
-
   const { reference: gray700 } = cssVar('chakra-colors-gray-700');
   const { reference: gray300 } = cssVar('chakra-colors-gray-300');
   const borderBottom = useColorModeValue(
@@ -153,7 +178,7 @@ const Header: FC = () => {
         top='0'
         zIndex='100'
         w='full'
-        minH={isNotLargerAndIsOpen ? '100vh' : 'auto'}
+        minH={!isLargerThanSm && isOpen ? '100vh' : 'auto'}
         borderBottom={
           isNotLargerAndIsOpen
             ? '1px solid transparent'
@@ -165,14 +190,14 @@ const Header: FC = () => {
         transitionDuration={'fast'}
         transitionProperty={'common'}
       >
-        {isNotLargerAndIsOpen ? (
+        {!isLargerThanSm && isOpen ? (
           <Flex direction='column' gap='4' h={'100vh'}>
             {content}
             <SimpleGrid
               px={2}
               alignItems={'center'}
-              spacing={'20px'}
-              minChildWidth={'200px'}
+              spacing={'10px'}
+              minChildWidth={'220px'}
               overflow='auto'
             >
               {buttons.map((button, idx) => (
@@ -184,6 +209,27 @@ const Header: FC = () => {
           content
         )}
       </Box>
+      {(isLargerThanSm && !isLargerThanMd) && isOpen && (
+        <Drawer onClose={onClose} isOpen={isOpen} size={'xs'}>
+          <DrawerOverlay />
+          <DrawerContent>
+            <DrawerCloseButton />
+            <DrawerHeader>Меню</DrawerHeader>
+            <DrawerBody>
+              <SimpleGrid
+                alignItems={'center'}
+                spacing={'10px'}
+                minChildWidth={'200px'}
+                overflow='auto'
+              >
+                {buttons.map((button, idx) => (
+                  <Fragment key={idx}>{button}</Fragment>
+                ))}
+              </SimpleGrid>
+            </DrawerBody>
+          </DrawerContent>
+        </Drawer>
+      )}
     </>
   );
 };

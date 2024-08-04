@@ -1,3 +1,4 @@
+import { fetchEventSource } from '@microsoft/fetch-event-source';
 import { print } from 'graphql';
 import { useEffect, useState } from 'react';
 import { graphql } from '../gql';
@@ -28,28 +29,42 @@ export const useNewWbOrderSubscription = () => {
   useEffect(() => {
     const subscriptionQuery = print(NewWbOrderSubscriptionDocument);
     const url = new URL(`${import.meta.env.VITE_GRAPHQL_URI}`);
-    url.searchParams.append('query', subscriptionQuery);
+    let ctrl: AbortController | null = null;
 
-    const eventSource = new EventSource(url);
+    const startEventSource = async () => {
+      ctrl = new AbortController();
 
-    eventSource.addEventListener('next', (event) => {
-      const data = JSON.parse(event.data) as { data: NewWbOrderSubscriptionSubscription};
-      if(data.data && data.data.newWbOrder) {
-        setNewOrder(data.data.newWbOrder);
-      }
-    });
+      await fetchEventSource(url.toString(), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        openWhenHidden: true,
+        credentials: 'include',
+        body: JSON.stringify({
+          query: subscriptionQuery,
+        }),
+        signal: ctrl.signal,
+        onmessage(event) {
+          if (event.event === 'next') {
+            const data = JSON.parse(event.data) as { data: NewWbOrderSubscriptionSubscription };
+            if (data.data && data.data.newWbOrder) {
+              setNewOrder(data.data.newWbOrder);
+            }
+          }
+        },
+        onerror(err: any) {
+          console.error({ err });
+          setError(new Error('SSE connection error'));
+          // The library will automatically retry on most errors
+        },
+      });
+    };
 
-    eventSource.addEventListener('error', e => {
-      setError(new Error('SSE connection error'));
-      eventSource.close();
-    });
-
-    eventSource.addEventListener('complete', () => {
-      eventSource.close();
-    });
+    startEventSource();
 
     return () => {
-      eventSource.close();
+      ctrl?.abort();
     };
   }, []);
 

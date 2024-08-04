@@ -45,10 +45,8 @@ to bundle CSS into JS file.
 [preamble]: https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/src/fast-refresh.ts#L30
 
 ## Planning:
-- check refresh token expiration time
-- implement search by phone or phoneWb or `ФИО` or ID
+- roles for each user
 - Query Key Factory
-- adaptive header
 - sticky stuff(if needed)
 
 <!-- This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules. -->

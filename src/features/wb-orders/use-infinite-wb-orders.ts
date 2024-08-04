@@ -1,4 +1,4 @@
-import { WbOrdersQuery } from '../../gql/graphql';
+import { SearchTypeWbOrders, WbOrdersQuery } from '../../gql/graphql';
 import { graphql } from '../../gql';
 import { client } from '../../graphql-client';
 import { useInfiniteQuery } from '@tanstack/react-query';
@@ -14,10 +14,14 @@ type TPageParam = {
 type UseInfiniteWbOrdersProps = {
   take: number;
   status?: OrderStatus | 'ALL';
+  query: string;
+  searchType?: SearchTypeWbOrders;
   options?: InitialDataInfiniteOptions<WbOrdersQuery, TPageParam>;
 };
 
 export const useInfiniteWbOrders = ({
+  query,
+  searchType = SearchTypeWbOrders.Id,
   take = 30,
   status = 'ALL',
   options,
@@ -52,12 +56,14 @@ export const useInfiniteWbOrders = ({
   return useInfiniteQuery({
     queryKey: [
       (wbOrders.definitions[0] as any).name.value,
-      { input: { take, status } },
+      { input: { take, status, query, searchType } },
     ],
     queryFn: async ({ pageParam }) => {
       try {
         return await client.request(wbOrders, {
           input: {
+            query,
+            searchType,
             take,
             after: pageParam.after,
             ...(status === 'ALL' ? {} : { status }),

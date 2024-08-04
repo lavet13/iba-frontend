@@ -321,11 +321,7 @@ const WbOrders: FC = () => {
         {() => (
           <Form>
             <Container>
-              <SimpleGrid
-                {...(!isLargerThanMd ? { my: '2' } : {})}
-                gap={2}
-                minChildWidth={'230px'}
-              >
+              <SimpleGrid gap={2} minChildWidth={'230px'}>
                 {isLargerThanMd && (
                   <SelectWrapper
                     size='sm'
@@ -345,9 +341,7 @@ const WbOrders: FC = () => {
                 {deferredSearchQuery.length !== 0 && (
                   <SelectWrapper
                     size='sm'
-                    {...(isLargerThanMd
-                      ? { label: 'Выберите тип поиска' }
-                      : {})}
+                    label='Выберите тип поиска'
                     isLoading={isPending}
                     name='searchType'
                     placeholder='Выберите тип поиска'
@@ -362,7 +356,11 @@ const WbOrders: FC = () => {
 
                 {isClient && (
                   <>
-                    <InputGroup size='sm' alignSelf='end'>
+                    <InputGroup
+                      {...(!isLargerThanMd ? { my: '2' } : {})}
+                      size='sm'
+                      alignSelf='end'
+                    >
                       <InputLeftElement pointerEvents={'none'}>
                         {isStaleSearchQuery ? (
                           <Spinner boxSize={4} />

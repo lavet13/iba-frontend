@@ -16,7 +16,6 @@ import {
   InputProps,
   InputRightElement,
 } from '@chakra-ui/react';
-import { ConsoleLog } from '../utils/debug/console-log';
 
 type PasswordInputProps = {
   label: string;

@@ -14,11 +14,10 @@ import {
 import { Select as ChakraSelect } from 'chakra-react-select';
 
 import type { ChakraStylesConfig, SelectComponent } from 'chakra-react-select';
-import { ConsoleLog } from '../utils/debug/console-log';
 
 export type SelectProps = {
   name: string;
-  label: string;
+  label?: string;
   placeholder?: string;
   isRequired?: boolean;
   id?: string;
@@ -34,14 +33,14 @@ const Select: FC<SelectProps> = memo(
     // helpers { setValue, setTouched, setError }
 
     return (
-      <FastField name={name} {...(isLoading ? { isLoading } : {})}>
+      <FastField name={name} {...(isLoading ? { isLoading } : {})} {...(label ? { label } : {})}>
         {({
           field: { onChange, ...field },
           meta,
           form: { setFieldValue },
         }: FastFieldProps) => {
           const handleChange = (option: any) => {
-            ConsoleLog({ option });
+            import.meta.env.DEV && console.log({ option });
             setFieldValue(name, option.value);
           };
 
@@ -75,6 +74,10 @@ const Select: FC<SelectProps> = memo(
           };
 
           const chakraStyles: ChakraStylesConfig = {
+              control: (provided) => ({
+                ...provided,
+                alignSelf: 'end',
+              }),
             dropdownIndicator: (provided, { selectProps }) => ({
               ...provided,
               '> svg': {
@@ -87,12 +90,15 @@ const Select: FC<SelectProps> = memo(
             <FormControl
               isRequired={props.isRequired}
               isInvalid={!!meta.error && meta.touched}
+              display="flex"
+              flexDirection="column"
+              justifyContent="space-between"
             >
-              <FormLabel htmlFor={props.id || name}>{label}</FormLabel>
+              {label && <FormLabel htmlFor={props.id || name}>{label}</FormLabel>}
 
               <ChakraSelect
                 {...field}
-                {...props}
+                size={['sm', 'sm', 'md']}
                 isLoading={isLoading}
                 id={props.id || name}
                 value={
@@ -110,6 +116,7 @@ const Select: FC<SelectProps> = memo(
                 noOptionsMessage={() => <Box>Нет данных</Box>}
                 options={data}
                 chakraStyles={chakraStyles}
+                {...props}
               />
               <ErrorMessage name={name} component={FormErrorMessage} />
             </FormControl>

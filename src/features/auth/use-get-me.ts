@@ -33,9 +33,9 @@ export const useGetMe = (options?: InitialDataOptions<MeQuery>) => {
           error.response.errors[0].extensions.code === 'AUTHENTICATION_REQUIRED'
         ) {
           queryClient.setQueryData(['Me'], null);
-          console.warn('Session timeout!');
+          import.meta.env.DEV && console.warn('Session timeout!');
 
-          console.log('navigation fired!');
+          import.meta.env.DEV && console.log('navigation fired!');
           navigate('/');
         }
         if (
@@ -43,7 +43,7 @@ export const useGetMe = (options?: InitialDataOptions<MeQuery>) => {
           error.response.errors[0].extensions.code === 'UNAUTHENTICATED'
         ) {
           queryClient.setQueryData(['Me'], null);
-          console.warn('Unauthenticated!');
+          import.meta.env.DEV && console.warn('Unauthenticated!');
         }
         throw error;
       }

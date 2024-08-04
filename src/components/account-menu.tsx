@@ -19,7 +19,6 @@ import { NumericFormat } from 'react-number-format';
 import { useNavigate } from 'react-router-dom';
 import { useGetMe, useLogout } from '../features/auth';
 import queryClient from '../react-query/query-client';
-import { ConsoleLog } from '../utils/debug/console-log';
 import { isGraphQLRequestError } from '../utils/graphql/is-graphql-request-error';
 
 type AccountMenuProps = {
@@ -57,7 +56,6 @@ const AccountMenu: FC<AccountMenuProps> = ({ onClose }) => {
     <Menu onClose={onCloseMenu} onOpen={onOpen}>
       <MenuButton
         as={Button}
-        colorScheme='teal'
         variant="outline"
         size={['md', null, 'sm']}
         isLoading={getMePending || isRefetching}

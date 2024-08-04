@@ -14,7 +14,6 @@ import {
   Input,
 } from '@chakra-ui/react';
 import type { InputProps } from '@chakra-ui/react';
-import { ConsoleLog } from '../utils/debug/console-log';
 
 type NumberInputProps = {
   name: string;

@@ -1,6 +1,5 @@
 import { Route, Routes } from 'react-router-dom';
 import suspenseFallbackMap from './suspense-fallback-map';
-import { ConsoleLog } from './utils/debug/console-log';
 import { Loadable } from './utils/ssr/loadable';
 import { lazy } from 'react';
 
@@ -14,21 +13,21 @@ const PagePathsWithComponents: Record<string, any> = import.meta.glob(
   './pages/**/[!_]*.tsx',
 );
 
-ConsoleLog({
+import.meta.env.DEV && console.log({
   PagePathsWithComponents,
   paths: Object.keys(PagePathsWithComponents),
 });
 
 const routes = Object.keys(PagePathsWithComponents).map(path => {
   const dynamicMatch = path.match(/\.\/pages\/(.*?)\/\[(.*?)\](?:\/(.*?)(?:\/(.*?))?)?\.tsx$/);
-  ConsoleLog({ dynamicMatch });
+  import.meta.env.DEV && console.log({ dynamicMatch });
   if (dynamicMatch) {
     const [, routePath, paramName, nestedPath = '', nestedParamName = ''] = dynamicMatch;
 
     const nestedPathToUse = nestedPath === 'index' ? '' : nestedPath;
     const nestedParamToUse = nestedParamName ? `:${nestedParamName}` : '';
 
-    ConsoleLog({
+    import.meta.env.DEV && console.log({
       path: `${routePath}/:${paramName}${nestedPathToUse ? `/${nestedPathToUse}${nestedParamToUse}` : ''}`,
     });
 
@@ -55,7 +54,7 @@ const routes = Object.keys(PagePathsWithComponents).map(path => {
   return null; // Ignore invalid paths
 });
 
-ConsoleLog({ routes });
+import.meta.env.DEV && console.log({ routes });
 
 const filteredRoutes = routes.filter(
   (

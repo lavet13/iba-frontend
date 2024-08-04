@@ -17,8 +17,6 @@ import { isGraphQLRequestError } from '../utils/graphql/is-graphql-request-error
 import { Link, useNavigate } from 'react-router-dom';
 import { useGetMe, useSignup } from '../features/auth';
 import { Persist } from '../components/persist-form';
-import { ConsoleLog } from '../utils/debug/console-log';
-import { queryString } from '../utils/helpers/queryString';
 
 type HandleSubmitProps = (
   values: InitialValues,

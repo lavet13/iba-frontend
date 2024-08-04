@@ -1,16 +1,17 @@
-import { FC, useEffect } from "react";
+import { useFormikContext } from 'formik';
+import { FC, useEffect } from 'react';
+import isEqual from 'react-fast-compare';
 
-type AutoSubmitProps = {
-  values: any
-  submitForm: () => void
-};
+const AutoSubmit: FC = () => {
+  const formik = useFormikContext();
 
-const AutoSubmit: FC<AutoSubmitProps> = ({ values, submitForm }) => {
   useEffect(() => {
-    submitForm()
-  }, [values, submitForm])
+    if(!isEqual(formik.values, formik.initialValues)) {
+      formik.submitForm();
+    }
+  }, [formik.values]);
 
-  return null
+  return null;
 };
 
 export default AutoSubmit;

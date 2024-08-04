@@ -13,7 +13,6 @@ import {
   Icon,
   IconButton,
 } from '@chakra-ui/react';
-import { ConsoleLog } from '../utils/debug/console-log';
 import { HiOutlinePaperClip, HiX } from 'react-icons/hi';
 
 type FileInputProps = {

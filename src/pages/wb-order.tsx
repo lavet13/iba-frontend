@@ -21,7 +21,6 @@ import { toFormikValidationSchema } from 'zod-formik-adapter';
 import FileInput from '../components/file-input';
 import PhoneInput from '../components/phone-input';
 import TextInput from '../components/text-input';
-import { ConsoleLog } from '../utils/debug/console-log';
 import { isPossiblePhoneNumber } from 'react-phone-number-input';
 import CodeInput from '../components/code-input';
 import { MutationSaveWbOrderArgs } from '../gql/graphql';
@@ -146,7 +145,7 @@ const WbOrder: FC = () => {
 
   const handleSubmit: HandleSubmitProps = async (values, actions) => {
     try {
-      ConsoleLog({ values });
+      import.meta.env.DEV && console.log({ values });
       const capitalizeFirstLetter = (str: string) =>
         str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
       const unformattedFLP = values.FLP.split(/\s+/);
@@ -155,7 +154,7 @@ const WbOrder: FC = () => {
 
       // @ts-ignore
       const QR = values.QR?.[0] || (null as File | null);
-      ConsoleLog({ QR });
+      import.meta.env.DEV && console.log({ QR });
 
       // @ts-ignore
       const orderCode = values.orderCode || null;
@@ -171,7 +170,7 @@ const WbOrder: FC = () => {
           phone,
         },
       };
-      ConsoleLog({ payload });
+      import.meta.env.DEV && console.log({ payload });
 
       const createdOrder = await createOrder({ ...payload });
       actions.resetForm();
@@ -215,7 +214,7 @@ const WbOrder: FC = () => {
           isClosable: true,
         });
       }
-      ConsoleLog({ error });
+      import.meta.env.DEV && console.log({ error });
       actions.setStatus('error');
     } finally {
       actions.setSubmitting(false);
@@ -234,7 +233,7 @@ const WbOrder: FC = () => {
           innerRef={formRef}
         >
           {({ isSubmitting }) => {
-            ConsoleLog({ isSubmitting });
+            import.meta.env.DEV && console.log({ isSubmitting });
 
             return (
               <Form>

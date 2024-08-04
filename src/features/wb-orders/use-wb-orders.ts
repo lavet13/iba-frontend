@@ -3,7 +3,6 @@ import { graphql } from '../../gql';
 import { WbOrdersQuery } from '../../gql/graphql';
 import { InitialDataOptions } from '../../utils/graphql/initial-data-options';
 import { client } from '../../graphql-client';
-import { ConsoleLog } from '../../utils/debug/console-log';
 
 type UseWbOrdersProps = {
   take?: number;
@@ -16,7 +15,7 @@ export const useWbOrders = (
   options?: InitialDataOptions<WbOrdersQuery>
 ) => {
   const input: Record<string, any> = {};
-  ConsoleLog({ before, after });
+  import.meta.env.DEV && console.log({ before, after });
 
   if (after !== null && after !== undefined) {
     input.after = after;
@@ -27,7 +26,7 @@ export const useWbOrders = (
   if (take !== undefined && take !== null) {
     input.take = take;
   }
-  ConsoleLog({ input });
+  import.meta.env.DEV && console.log({ input });
 
   const wbOrders = graphql(`
     query WbOrders($input: WbOrdersInput!) {
@@ -58,7 +57,7 @@ export const useWbOrders = (
     queryKey: [(wbOrders.definitions[0] as any).name.value, { input }],
     queryFn: async () => {
       // await new Promise(resolve => setTimeout(() => resolve(0), 10000000));
-      return client.request(wbOrders, { input });
+      return await client.request(wbOrders, { input });
     },
     placeholderData: keepPreviousData,
     ...options,

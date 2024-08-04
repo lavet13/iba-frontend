@@ -15,11 +15,9 @@ import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Persist } from '../components/persist-form';
 import TextInput from '../components/text-input';
 import { useGetMe, useLogin } from '../features/auth';
-import { ConsoleLog } from '../utils/debug/console-log';
 import { isFormRefNotNull } from '../utils/form/is-form-ref-not-null';
 import { isGraphQLRequestError } from '../utils/graphql/is-graphql-request-error';
 import PasswordInput from '../components/password-input';
-import { queryString } from '../utils/helpers/queryString';
 
 type InitialValues = {
   login: string;

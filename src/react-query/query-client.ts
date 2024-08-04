@@ -1,14 +1,13 @@
 import { QueryCache, QueryClient } from '@tanstack/react-query';
 import { createStandaloneToast } from '@chakra-ui/react';
 import { isGraphQLRequestError } from '../utils/graphql/is-graphql-request-error';
-import { ConsoleLog } from '../utils/debug/console-log';
 
 const { toast } = createStandaloneToast();
 
 const queryClient = new QueryClient({
   queryCache: new QueryCache({
     onError(error, query) {
-      ConsoleLog({ state: query.state });
+      import.meta.env.DEV && console.log({ state: query.state });
 
       if(query.meta) {
         if(query.meta.toastEnabled === false) return;

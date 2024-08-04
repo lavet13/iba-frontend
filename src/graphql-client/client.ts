@@ -6,7 +6,7 @@ import { isGraphQLRequestError } from '../utils/graphql/is-graphql-request-error
 import { requestMiddlewareUploadFiles } from './request-middleware-upload-files';
 
 class AuthenticatedGraphQLClient extends GraphQLClient {
-  private refreshTokenPromise: RefreshTokenMutation | null = null;
+  private refreshTokenPromise: Promise<RefreshTokenMutation> | null = null;
 
   async request<T = any, V extends Variables = Variables>(
     document: RequestDocument | TypedDocumentNode<T, V>,
@@ -27,7 +27,7 @@ class AuthenticatedGraphQLClient extends GraphQLClient {
       import.meta.env.DEV && console.log({ error });
       if (isGraphQLRequestError(error) && error.response?.errors?.[0]?.extensions?.code === 'TOKEN_EXPIRED') {
         await this.refreshTokens();
-        return (super.request as any)(documentOrOptions, ...variablesAndRequestHeaders);
+        return await (super.request as any)(documentOrOptions, ...variablesAndRequestHeaders);
       }
       throw error;
     }
@@ -35,7 +35,7 @@ class AuthenticatedGraphQLClient extends GraphQLClient {
 
   private async refreshTokens(): Promise<void> {
     if(!this.refreshTokenPromise) {
-      this.refreshTokenPromise = await super.request<RefreshTokenMutation>(
+      this.refreshTokenPromise = super.request<RefreshTokenMutation>(
         gql`
           mutation RefreshToken {
             refreshToken {
@@ -48,11 +48,13 @@ class AuthenticatedGraphQLClient extends GraphQLClient {
     }
 
     try {
-      const { refreshToken } = this.refreshTokenPromise;
+      const { refreshToken } = await this.refreshTokenPromise;
 
       console.log({ refreshToken });
     } catch(error) {
       console.error('Failed to refresh token: ', error);
+      this.refreshTokenPromise = null;
+      throw error;
     } finally {
       this.refreshTokenPromise = null;
     }
