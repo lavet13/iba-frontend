@@ -176,7 +176,7 @@ const Header: FC = () => {
         bg='chakra-body-bg'
         position='sticky'
         top='0'
-        zIndex='100'
+        zIndex='1000'
         w='full'
         minH={!isLargerThanSm && isOpen ? '100vh' : 'auto'}
         borderBottom={

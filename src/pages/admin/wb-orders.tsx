@@ -78,6 +78,7 @@ import AutoSubmit from '../../components/auto-submit';
 import { HiArrowLeft, HiFilter, HiSearch } from 'react-icons/hi';
 import { HiArrowLongLeft } from 'react-icons/hi2';
 import useIsClient from '../../utils/ssr/use-is-client';
+import { useScrollDirection } from '../../hooks/use-scroll-direction';
 
 type HandleSubmitProps = (
   values: InitialValues,
@@ -132,6 +133,7 @@ type InitialValues = FormSchema & { status: StatusKey | '' };
 export const take = 30;
 
 const WbOrders: FC = () => {
+  const scrollDirection = useScrollDirection();
   const theme = useTheme();
   const toast = useToast();
   const { isClient } = useIsClient();
@@ -319,10 +321,23 @@ const WbOrders: FC = () => {
         }}
       >
         {() => (
-          <Form>
+          <Box
+            as={Form}
+            position='sticky'
+            top={'59px'}
+            width='100%'
+            bg='chakra-body-bg'
+            zIndex={100}
+            transform={
+              scrollDirection === 'down' ? 'translateY(-100%)' : 'translateY(0)'
+            }
+            transitionTimingFunction={'ease-in-out'}
+            transitionDuration={'fast'}
+            transitionProperty='common'
+          >
             <Container>
               <SimpleGrid
-                {...(!isLargerThanMd ? { my: '2' } : {})}
+                my={2}
                 gap={2}
                 minChildWidth={'230px'}
               >
@@ -407,7 +422,7 @@ const WbOrders: FC = () => {
               </SimpleGrid>
             </Container>
             <AutoSubmit />
-          </Form>
+          </Box>
         )}
       </Formik>
 
@@ -785,7 +800,7 @@ const WbOrders: FC = () => {
                 onClick={onFilterClose}
                 variant={'link'}
                 aria-label='close filters'
-                icon={<Icon as={HiArrowLongLeft} boxSize='5' />}
+                icon={<Icon as={HiArrowLeft} boxSize='5' />}
               />
               Фильтры
             </DrawerHeader>
