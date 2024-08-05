@@ -336,11 +336,7 @@ const WbOrders: FC = () => {
             transitionProperty='common'
           >
             <Container>
-              <SimpleGrid
-                my={2}
-                gap={2}
-                minChildWidth={'230px'}
-              >
+              <SimpleGrid my={2} gap={2} minChildWidth={'230px'}>
                 {isLargerThanMd && (
                   <SelectWrapper
                     size='sm'
@@ -357,7 +353,7 @@ const WbOrders: FC = () => {
                   />
                 )}
 
-                {deferredSearchQuery.length !== 0 && (
+                {isLargerThanMd && (
                   <SelectWrapper
                     size='sm'
                     {...(isLargerThanMd
@@ -412,7 +408,7 @@ const WbOrders: FC = () => {
                             size='sm'
                             aria-label='filter orders'
                             onClick={onFilterOpen}
-                            icon={<Icon as={HiFilter} boxSize={4} />}
+                            icon={<Icon as={HiFilter} boxSize={5} />}
                           />
                         </InputRightElement>
                       )}
@@ -806,7 +802,7 @@ const WbOrders: FC = () => {
             </DrawerHeader>
             <DrawerBody>
               <Formik
-                initialValues={{ sortStatus }}
+                initialValues={{ sortStatus, searchType }}
                 enableReinitialize={true}
                 onSubmit={(values, __) => {
                   startTransition(() => {
@@ -814,10 +810,10 @@ const WbOrders: FC = () => {
                       const query = new URLSearchParams(params.toString());
 
                       query.set('sort_by_status', values.sortStatus);
+                      query.set('search_type', values.searchType);
 
                       return query;
                     });
-                    onFilterClose();
                   });
                 }}
               >
@@ -836,6 +832,19 @@ const WbOrders: FC = () => {
                             { label: 'СОБРАН', value: 'ASSEMBLED' },
                             { label: 'НЕ СОБРАН', value: 'NOT_ASSEMBLED' },
                             { label: 'ОТКЛОНЕН', value: 'REJECTED' },
+                          ]}
+                        />
+                        <SelectWrapper
+                          size='sm'
+                          label='Выберите тип поиска'
+                          isLoading={isPending}
+                          name='searchType'
+                          placeholder='Выберите тип поиска'
+                          data={[
+                            { label: 'ID', value: 'ID' },
+                            { label: 'ФИО', value: 'NAME' },
+                            { label: 'ТЕЛЕФОН', value: 'PHONE' },
+                            { label: 'ТЕЛЕФОН WB', value: 'WB_PHONE' },
                           ]}
                         />
                       </SimpleGrid>

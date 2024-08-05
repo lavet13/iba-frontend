@@ -1,6 +1,6 @@
-import React, { FC, memo, useRef, useState } from 'react';
+import React, { FC, memo, useRef, useEffect } from 'react';
 
-import { ErrorMessage, FastField, FastFieldProps } from 'formik';
+import { ErrorMessage, FastField, FastFieldProps, useFormikContext } from 'formik';
 
 import {
   FormControl,
@@ -11,7 +11,6 @@ import {
   InputProps,
   InputRightElement,
   Icon,
-  IconButton,
 } from '@chakra-ui/react';
 import { HiOutlinePaperClip, HiX } from 'react-icons/hi';
 
@@ -30,6 +29,14 @@ const MAX_FILE_NAME_LENGTH = 20;
 const FileInput: FC<FileInputProps> = memo(
   ({ label, name, accept, multipleFiles = false, ...props }) => {
     const inputRef = useRef<HTMLInputElement | null>(null);
+    const formik = useFormikContext<any>();
+    const value = formik.values?.[name];
+
+    useEffect(() => {
+      if (!(value?.[0] && typeof value[0] === 'object' && 'name' in value[0])) {
+        formik.setFieldValue(name, null);
+      }
+    }, [value, name]);
 
     return (
       <FastField name={name}>
@@ -68,7 +75,6 @@ const FileInput: FC<FileInputProps> = memo(
             }
           };
 
-
           return (
             <FormControl
               isRequired={props.isRequired}
@@ -98,12 +104,18 @@ const FileInput: FC<FileInputProps> = memo(
                     onClick: handleOnInputClick,
                   }}
                 />
-                {!value?.length ? (<InputRightElement pointerEvents={'none'}>
-                  <Icon as={HiOutlinePaperClip} boxSize={5} />
-                </InputRightElement>) :
-                <InputRightElement onClick={handleOnClearClick} cursor={'pointer'}>
-                  <Icon as={HiX} boxSize={5} />
-                </InputRightElement>}
+                {!value?.length ? (
+                  <InputRightElement pointerEvents={'none'}>
+                    <Icon as={HiOutlinePaperClip} boxSize={5} />
+                  </InputRightElement>
+                ) : (
+                  <InputRightElement
+                    onClick={handleOnClearClick}
+                    cursor={'pointer'}
+                  >
+                    <Icon as={HiX} boxSize={5} />
+                  </InputRightElement>
+                )}
               </InputGroup>
               <ErrorMessage name={name} component={FormErrorMessage} />
             </FormControl>
@@ -115,6 +127,7 @@ const FileInput: FC<FileInputProps> = memo(
 );
 
 const getShortFileName = (fileName: string, maxLength: number) => {
+  if (!fileName) return null;
   const lastDotIndex = fileName.lastIndexOf('.');
   const extension = fileName.slice(lastDotIndex);
   const name = fileName.slice(0, lastDotIndex);
