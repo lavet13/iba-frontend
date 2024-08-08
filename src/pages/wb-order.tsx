@@ -13,6 +13,7 @@ import {
   LinkOverlay,
   Image,
   Text,
+  useColorModeValue,
 } from '@chakra-ui/react';
 import { Form, Formik, FormikHelpers, FormikProps } from 'formik';
 import { FC, ReactNode, useRef, useState, useEffect } from 'react';

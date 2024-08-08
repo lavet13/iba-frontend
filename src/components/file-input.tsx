@@ -1,6 +1,11 @@
 import React, { FC, memo, useRef, useEffect } from 'react';
 
-import { ErrorMessage, FastField, FastFieldProps, useFormikContext } from 'formik';
+import {
+  ErrorMessage,
+  FastField,
+  FastFieldProps,
+  useFormikContext,
+} from 'formik';
 
 import {
   FormControl,
@@ -11,6 +16,10 @@ import {
   InputProps,
   InputRightElement,
   Icon,
+  Box,
+  Flex,
+  useColorModeValue,
+  useColorMode,
 } from '@chakra-ui/react';
 import { HiOutlinePaperClip, HiX } from 'react-icons/hi';
 
@@ -113,7 +122,19 @@ const FileInput: FC<FileInputProps> = memo(
                     onClick={handleOnClearClick}
                     cursor={'pointer'}
                   >
-                    <Icon as={HiX} boxSize={5} />
+                    <Flex
+                      align={'center'}
+                      justify={'center'}
+                      p={1}
+                      rounded={'md'}
+                      _hover={{ bg: 'blackAlpha.100' }}
+                      _dark={{ _hover: { bg: 'whiteAlpha.100' } }}
+                      transitionTimingFunction={'ease-in-out'}
+                      transitionDuration={'fast'}
+                      transitionProperty='common'
+                    >
+                      <Icon as={HiX} boxSize={5} />
+                    </Flex>
                   </InputRightElement>
                 )}
               </InputGroup>
@@ -126,7 +147,7 @@ const FileInput: FC<FileInputProps> = memo(
   }
 );
 
-const getShortFileName = (fileName: string, maxLength: number) => {
+function getShortFileName(fileName: string, maxLength: number) {
   if (!fileName) return null;
   const lastDotIndex = fileName.lastIndexOf('.');
   const extension = fileName.slice(lastDotIndex);
@@ -141,6 +162,6 @@ const getShortFileName = (fileName: string, maxLength: number) => {
   const truncatedName = name.slice(0, maxNameLength);
   const endPart = name.slice(lastDotIndex - 6, lastDotIndex);
   return `${truncatedName}...${endPart}${extension}`;
-};
+}
 
 export default FileInput;

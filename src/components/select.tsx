@@ -13,7 +13,10 @@ import {
 
 import { Select as ChakraSelect } from 'chakra-react-select';
 
-import type { ChakraStylesConfig, SelectComponent } from 'chakra-react-select';
+import type {
+  ChakraStylesConfig,
+  Props as ChakraSelectProps,
+} from 'chakra-react-select';
 
 export type SelectProps = {
   name: string;
@@ -24,7 +27,7 @@ export type SelectProps = {
   data?: any[];
   isGroup?: boolean;
   isLoading?: boolean;
-} & Partial<SelectComponent>;
+} & Partial<ChakraSelectProps>;
 
 const Select: FC<SelectProps> = memo(
   ({ name, label, data, isGroup = false, isLoading, ...props }) => {
@@ -33,18 +36,29 @@ const Select: FC<SelectProps> = memo(
     // helpers { setValue, setTouched, setError }
 
     return (
-      <FastField name={name} {...(isLoading ? { isLoading } : {})} {...(label ? { label } : {})}>
+      <FastField
+        name={name}
+        {...(isLoading ? { isLoading } : {})}
+        {...(label ? { label } : {})}
+      >
         {({
           field: { onChange, ...field },
           meta,
           form: { setFieldValue },
         }: FastFieldProps) => {
           const handleChange = (option: any) => {
-            import.meta.env.DEV && console.log({ option });
+            if (props.isMulti) {
+              const options = option.map((o: any) => o.value);
+              return setFieldValue(name, options);
+            }
             setFieldValue(name, option.value);
           };
 
           const handleGroupSelection = (value: any) => {
+            if (props.isMulti) {
+              // TODO: make similar selection as handleSelection
+            }
+
             if (value === '') {
               return { label: props.placeholder || '', value: '' };
             }
@@ -62,6 +76,18 @@ const Select: FC<SelectProps> = memo(
           };
 
           const handleSelection = (value: any) => {
+            if (props.isMulti) {
+              if (Array.isArray(value) && value.length === 0) {
+                return [];
+              }
+
+              const selectedOptions = data?.map(
+                (option: any) => value.includes(option.value) ? option : null
+              ).filter(Boolean);
+
+              return selectedOptions;
+            }
+
             if (value === '') {
               return { label: props.placeholder || '', value: '' };
             }
@@ -74,10 +100,10 @@ const Select: FC<SelectProps> = memo(
           };
 
           const chakraStyles: ChakraStylesConfig = {
-              control: (provided) => ({
-                ...provided,
-                alignSelf: 'end',
-              }),
+            control: provided => ({
+              ...provided,
+              alignSelf: 'end',
+            }),
             dropdownIndicator: (provided, { selectProps }) => ({
               ...provided,
               '> svg': {
@@ -90,11 +116,13 @@ const Select: FC<SelectProps> = memo(
             <FormControl
               isRequired={props.isRequired}
               isInvalid={!!meta.error && meta.touched}
-              display="flex"
-              flexDirection="column"
-              justifyContent="space-between"
+              display='flex'
+              flexDirection='column'
+              justifyContent='space-between'
             >
-              {label && <FormLabel htmlFor={props.id || name}>{label}</FormLabel>}
+              {label && (
+                <FormLabel htmlFor={props.id || name}>{label}</FormLabel>
+              )}
 
               <ChakraSelect
                 {...field}

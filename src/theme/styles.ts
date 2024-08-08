@@ -3,6 +3,27 @@ import { Styles } from '@chakra-ui/theme-tools';
 const styles: Styles = {
   global: _ => ({
     html: { fontSize: { base: 'lg', sm: 'xl' } },
+    '*::-webkit-scrollbar': {
+      padding: '2px',
+      width: '10px',
+      height: '10px',
+    },
+    '::-webkit-scrollbar-button': {
+      display: 'none',
+    },
+    '::-webkit-scrollbar-track': {
+      display: 'none',
+    },
+
+    '::-webkit-scrollbar-thumb': {
+      bg: 'scrollbar-thumb-bg',
+      borderRadius: '4px',
+      transition: `background 0.9s`,
+    },
+    '::-webkit-scrollbar-thumb:hover': {
+      bg: 'scrollbar-thumb-hover-bg',
+    },
+
   }),
 };
 

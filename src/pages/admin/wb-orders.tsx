@@ -54,6 +54,7 @@ import {
   useRef,
   useTransition,
   useDeferredValue,
+  startTransition,
 } from 'react';
 import { useInfiniteWbOrders } from '../../features/wb-orders';
 import { Waypoint } from 'react-waypoint';
@@ -78,7 +79,8 @@ import AutoSubmit from '../../components/auto-submit';
 import { HiArrowLeft, HiFilter, HiSearch } from 'react-icons/hi';
 import { HiArrowLongLeft } from 'react-icons/hi2';
 import useIsClient from '../../utils/ssr/use-is-client';
-import { useScrollDirection } from '../../hooks/use-scroll-direction';
+import { useScrollDirection } from 'react-use-scroll-direction';
+import { ScrollDirection } from 'react-use-scroll-direction/dist/useScrollDirection';
 
 type HandleSubmitProps = (
   values: InitialValues,
@@ -133,7 +135,12 @@ type InitialValues = FormSchema & { status: StatusKey | '' };
 export const take = 30;
 
 const WbOrders: FC = () => {
-  const scrollDirection = useScrollDirection();
+  const { scrollDirection } = useScrollDirection();
+  const deferredScrollDirection = useDeferredValue(scrollDirection);
+  const lastScrollDirection = useRef<ScrollDirection>(null);
+  if (deferredScrollDirection !== null) {
+    lastScrollDirection.current = deferredScrollDirection;
+  }
   const theme = useTheme();
   const toast = useToast();
   const { isClient } = useIsClient();
@@ -156,19 +163,22 @@ const WbOrders: FC = () => {
     { ssr: true, fallback: false }
   );
 
-  const searchTypeValues: Record<string, any> = {
-    id: 'ID',
-    wb_phone: 'WB_PHONE',
-    phone: 'PHONE',
-    name: 'NAME',
-  };
-  const searchQuery = searchParams.get('q')! ?? '';
+  // const searchTypeValues: Record<string, any> = {
+  //   id: 'ID',
+  //   wb_phone: 'WB_PHONE',
+  //   phone: 'PHONE',
+  //   name: 'NAME',
+  // };
+  const searchQuery = searchParams.get('q') ?? '';
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const isStaleSearchQuery = searchQuery !== deferredSearchQuery;
-  const searchTypeParam = searchParams.get('search_type')!;
-  const searchTypeValue = searchTypeValues[searchTypeParam?.toLowerCase()];
-  const searchType: SearchTypeWbOrders =
-    searchTypeValue ?? ('ID' as SearchTypeWbOrders);
+  const searchTypeParam = searchParams.get('search_type')
+    ? JSON.parse(searchParams.get('search_type')!)
+    : [SearchTypeWbOrders.Phone];
+  // const searchTypeValue = searchTypeValues[searchTypeParam?.toLowerCase()];
+  // const searchType: SearchTypeWbOrders =
+  //   searchTypeValue ?? ('ID' as SearchTypeWbOrders);
+  const searchType: SearchTypeWbOrders[] = searchTypeParam;
 
   const sortByStatusValues: Record<string, any> = {
     all: 'ALL',
@@ -312,8 +322,10 @@ const WbOrders: FC = () => {
             setSearchParams(params => {
               const query = new URLSearchParams(params.toString());
 
+              console.log(values.searchType);
+
               query.set('sort_by_status', values.sortStatus);
-              query.set('search_type', values.searchType);
+              query.set('search_type', JSON.stringify(values.searchType));
 
               return query;
             });
@@ -329,7 +341,11 @@ const WbOrders: FC = () => {
             bg='chakra-body-bg'
             zIndex={100}
             transform={
-              scrollDirection === 'down' ? 'translateY(-100%)' : 'translateY(0)'
+              window.scrollY === 0
+                ? 'translateY(0)'
+                : lastScrollDirection.current === 'DOWN'
+                ? 'translateY(-100%)'
+                : 'translateY(0)'
             }
             transitionTimingFunction={'ease-in-out'}
             transitionDuration={'fast'}
@@ -353,8 +369,10 @@ const WbOrders: FC = () => {
                   />
                 )}
 
-                {isLargerThanMd && (
+                {isLargerThanMd && deferredSearchQuery.length !== 0 && (
                   <SelectWrapper
+                    isMulti
+                    closeMenuOnSelect={false}
                     size='sm'
                     {...(isLargerThanMd
                       ? { label: 'Выберите тип поиска' }
@@ -810,7 +828,7 @@ const WbOrders: FC = () => {
                       const query = new URLSearchParams(params.toString());
 
                       query.set('sort_by_status', values.sortStatus);
-                      query.set('search_type', values.searchType);
+                      query.set('search_type', JSON.stringify(values.searchType));
 
                       return query;
                     });
@@ -835,6 +853,8 @@ const WbOrders: FC = () => {
                           ]}
                         />
                         <SelectWrapper
+                          isMulti
+                          closeMenuOnSelect={false}
                           size='sm'
                           label='Выберите тип поиска'
                           isLoading={isPending}

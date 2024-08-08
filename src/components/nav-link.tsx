@@ -1,4 +1,4 @@
-import { FC, PropsWithChildren, useTransition } from 'react';
+import { FC, PropsWithChildren, startTransition } from 'react';
 import {
   NavLink as RouterNavLink,
   NavLinkProps as RouterNavLinkProps,
@@ -9,7 +9,6 @@ import { Button, ButtonProps, Link } from '@chakra-ui/react';
 type NavLinkProps = ButtonProps & RouterNavLinkProps & PropsWithChildren;
 
 const NavLink: FC<NavLinkProps> = ({ to, children, onClick, ...props }) => {
-  const [isPending, startTransition] = useTransition();
   const navigate = useNavigate();
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -27,11 +26,10 @@ const NavLink: FC<NavLinkProps> = ({ to, children, onClick, ...props }) => {
       {/* @ts-ignore */}
       {({ isActive }) => (
         <Button
-          variant={isActive || isPending ? 'solid' : 'outline'}
+          variant={isActive ? 'solid' : 'outline'}
           w={'full'}
           size={['md', null, 'sm']}
           onClick={handleClick}
-          isLoading={isPending}
           {...props}
         >
           {children}

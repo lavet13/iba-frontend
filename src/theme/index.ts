@@ -1,6 +1,8 @@
 import { extendTheme, theme as base } from '@chakra-ui/react';
 import type { ThemeConfig } from '@chakra-ui/react';
+
 import styles from './styles';
+import semanticTokens from './semantic-tokens';
 
 import Container from './components/container';
 import Button from './components/button';
@@ -24,6 +26,7 @@ const theme = extendTheme({
     heading: `"Golos", "Raleway", ${base.fonts?.heading}`,
     mono: `"Golos", "Raleway", ${base.fonts?.mono}`,
   },
+  semanticTokens,
 });
 
 export default theme;
