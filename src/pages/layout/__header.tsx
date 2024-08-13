@@ -28,6 +28,7 @@ import { useGetMe } from '../../features/auth';
 import AccountMenu from '../../components/account-menu';
 import NavLink from '../../components/nav-link';
 import useIntersectionObserver from '../../hooks/use-intersection-observer';
+import { Role } from '../../gql/graphql';
 
 const Header: FC = () => {
   const { data: getMeResult } = useGetMe();
@@ -68,16 +69,19 @@ const Header: FC = () => {
   }, [isOpen, isLargerThanSm, isLargerThanMd]);
 
   const buttons = [
-    getMeResult?.me && getMeResult.me.role === 'ADMIN' && (
-      <NavLink
-        to={'/admin/wb-orders'}
-        onClick={() => {
-          onClose();
-        }}
-      >
-        Заявки WB
-      </NavLink>
-    ),
+    getMeResult?.me &&
+      getMeResult.me.roles.some(
+        r => r === Role.Admin || r === Role.Manager
+      ) && (
+        <NavLink
+          to={'/admin/wb-orders'}
+          onClick={() => {
+            onClose();
+          }}
+        >
+          Заявки WB
+        </NavLink>
+      ),
     <NavLink
       to={'/wb-order'}
       onClick={() => {
@@ -105,9 +109,7 @@ const Header: FC = () => {
           </NavLink>
           <IconButton
             variant='ghost'
-            onClick={() =>
-              toggleColorMode()
-            }
+            onClick={() => toggleColorMode()}
             size='sm'
             aria-label='Color Mode'
             icon={
@@ -209,7 +211,7 @@ const Header: FC = () => {
           content
         )}
       </Box>
-      {(isLargerThanSm && !isLargerThanMd) && isOpen && (
+      {isLargerThanSm && !isLargerThanMd && isOpen && (
         <Drawer onClose={onClose} isOpen={isOpen} size={'xs'}>
           <DrawerOverlay />
           <DrawerContent>

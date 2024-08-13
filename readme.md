@@ -45,9 +45,7 @@ to bundle CSS into JS file.
 [preamble]: https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/src/fast-refresh.ts#L30
 
 ## Planning:
-- preview image wb-order
-- roles for each user
-- labels should be a little bit smaller in font size
+- nginx
 - animate pages using react-router, startTransition
 - Query Key Factory
 - sticky stuff(if needed)

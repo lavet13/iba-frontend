@@ -129,11 +129,14 @@ const WbOrder: FC = () => {
       const buffer = data.saveWbOrder.qrCodeFile.buffer;
       console.log({ type, buffer });
 
-      if(typeof buffer === 'object' && 'data' in buffer) {
+      if (typeof buffer === 'object' && 'data' in buffer) {
         const uint8Array = new Uint8Array(buffer.data);
 
         const base64 = btoa(
-          uint8Array.reduce((data, byte) => data + String.fromCharCode(byte), '')
+          uint8Array.reduce(
+            (data, byte) => data + String.fromCharCode(byte),
+            ''
+          )
         );
 
         const dataUrl = `data:${type};base64,${base64}`;
@@ -309,6 +312,7 @@ const WbOrder: FC = () => {
         <Container maxW={'600px'} flex='1'>
           <Alert
             status='success'
+            rounded='md'
             variant='subtle'
             flexDirection='column'
             alignItems='center'
@@ -338,6 +342,7 @@ const WbOrder: FC = () => {
                     {'QR-code:'}{' '}
                     <LinkBox>
                       <Image
+                        rounded='md'
                         width='300px'
                         mx='auto'
                         src={qrCodeUrl ?? ''}

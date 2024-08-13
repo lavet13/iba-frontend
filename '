@@ -18,12 +18,8 @@ import {
   Icon,
   Flex,
   Image,
-  Box,
-  IconButton,
-  DarkMode,
 } from '@chakra-ui/react';
 import { HiOutlinePaperClip, HiX } from 'react-icons/hi';
-import isEqual from 'react-fast-compare';
 
 type FileInputProps = {
   label: string;
@@ -42,8 +38,10 @@ const FileInput: FC<FileInputProps> = memo(
     const [imagesURI, setImagesURI] = useState<(string | ArrayBuffer | null)[]>(
       []
     );
-    const previousURI = useRef(imagesURI);
-    const formControlRef = useRef<HTMLDivElement | null>(null);
+    const handleOnSave = (e: ProgressEvent<FileReader>) =>
+      setImagesURI(images =>
+        [...images, e.target ? e.target.result : null].filter(Boolean)
+      );
 
     const inputRef = useRef<HTMLInputElement | null>(null);
     const formik = useFormikContext<any>();
@@ -56,26 +54,15 @@ const FileInput: FC<FileInputProps> = memo(
       if (!isFileExist) {
         formik.setFieldValue(name, null);
       }
-
-      if (formControlRef.current) {
-        formControlRef.current.role = '';
-      }
-    }, [value]);
+    }, [value, name]);
 
     return (
-      <FastField
-        name={name}
-        {...(isEqual(imagesURI, previousURI.current) ? { imagesURI } : {})}
-      >
+      <FastField name={name} {...(imagesURI.length !== 0 ? { imagesURI } : {})}>
         {({
           field: { value },
           meta,
           form: { setFieldValue },
         }: FastFieldProps) => {
-          if (!isEqual(imagesURI, previousURI.current)) {
-            previousURI.current = imagesURI;
-          }
-
           const fileName = value?.length
             ? (value as File[])
                 .map(({ name }) => getShortFileName(name, MAX_FILE_NAME_LENGTH))
@@ -86,17 +73,13 @@ const FileInput: FC<FileInputProps> = memo(
             const fileList = Array.from(e.currentTarget.files || []);
             setFieldValue(name, fileList);
 
-            const readers = fileList.map(f => {
-              return new Promise<string | ArrayBuffer | null>(resolve => {
-                const reader = new FileReader();
-                reader.onload = e => resolve(e.target?.result || null);
-                reader.readAsDataURL(f);
-              });
+            const reader = new FileReader();
+            reader.addEventListener('load', e => {
+              handleOnSave(e);
             });
 
-            Promise.all(readers).then(results => {
-              setImagesURI(results.filter(Boolean));
-            });
+            const getLastFile = Array.from(e.currentTarget.files || []).at(-1)!;
+            reader.readAsDataURL(getLastFile);
 
             clearInnerInput();
           };
@@ -105,16 +88,6 @@ const FileInput: FC<FileInputProps> = memo(
             if (inputRef.current) {
               inputRef.current.value = '';
             }
-          };
-
-          const handleDeleteImage = (index: number) => {
-            const newImagesURI = imagesURI.filter((_, i) => i !== index);
-            setImagesURI(newImagesURI);
-
-            const newFileList = Array.from(value || []).filter(
-              (_, i) => i !== index
-            );
-            setFieldValue(name, newFileList.length > 0 ? newFileList : null);
           };
 
           const handleOnClearClick = () => {
@@ -132,7 +105,6 @@ const FileInput: FC<FileInputProps> = memo(
 
           return (
             <FormControl
-              ref={formControlRef}
               isRequired={props.isRequired}
               isInvalid={!!meta.error && meta.touched}
             >
@@ -185,41 +157,9 @@ const FileInput: FC<FileInputProps> = memo(
                   </InputRightElement>
                 )}
               </InputGroup>
-              {imagesURI.length !== 0 && (
-                <Flex py='1' gap='1' display='inline-flex' wrap={'wrap'}>
-                  {imagesURI.map((img, idx) => (
-                    <Box
-                      key={idx}
-                      position={'relative'}
-                      width='100px'
-                      height='100px'
-                      zIndex={1}
-                      role='group'
-                    >
-                      <Image
-                        src={img as string}
-                        objectFit='cover'
-                        width='100%'
-                        height='100%'
-                        rounded={'md'}
-                      />
-                      <DarkMode>
-                        <IconButton
-                          aria-label='Delete Image'
-                          variant='ghost'
-                          icon={<Icon as={HiX} boxSize={3} />}
-                          size='xs'
-                          position='absolute'
-                          top='1'
-                          right='1'
-                          onClick={() => handleDeleteImage(idx)}
-                          zIndex={10}
-                        />
-                      </DarkMode>
-                    </Box>
-                  ))}
-                </Flex>
-              )}
+              {imagesURI.length !== 0
+                ? imagesURI.map(img => <Image src={img as string} />)
+                : null}
               <ErrorMessage name={name} component={FormErrorMessage} />
             </FormControl>
           );

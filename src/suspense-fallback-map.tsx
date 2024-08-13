@@ -29,7 +29,7 @@ const suspenseFallbackMap = new Map([
         </Thead>
 
         <Tbody>
-          {Array.from({ length: 30 }).map((_, i) => (
+          {Array.from({ length: 10 }).map((_, i) => (
             <Tr key={i}>
               <Td isNumeric>
                 <Skeleton height='20px' />

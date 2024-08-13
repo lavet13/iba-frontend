@@ -16,7 +16,7 @@ export const useGetMe = (options?: InitialDataOptions<MeQuery>) => {
         id
         email
         name
-        role
+        roles
       }
     }
   `);

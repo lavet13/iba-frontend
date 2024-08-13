@@ -54,7 +54,6 @@ import {
   useRef,
   useTransition,
   useDeferredValue,
-  startTransition,
 } from 'react';
 import { useInfiniteWbOrders } from '../../features/wb-orders';
 import { Waypoint } from 'react-waypoint';
@@ -134,7 +133,41 @@ type InitialValues = FormSchema & { status: StatusKey | '' };
 
 export const take = 30;
 
+const getSortByStatus = (sortByStatusParam: string): OrderStatus | 'ALL' => {
+  const validStatuses = new Set(Object.values(OrderStatus));
+
+  const upperCaseParam = sortByStatusParam.toUpperCase();
+
+  if(validStatuses.has(upperCaseParam as OrderStatus)) {
+    return upperCaseParam as OrderStatus;
+  }
+
+  return 'ALL';
+};
+
+const getSearchType = (searchParamValue: string) => {
+  const validTypes = new Set(Object.values(SearchTypeWbOrders));
+
+  try {
+    const parsed = JSON.parse(searchParamValue);
+
+    if (Array.isArray(parsed)) {
+      // Filter out invalid types and ensure all values are of type SearchTypeWbOrders
+      const validParsed = parsed.filter((type): type is SearchTypeWbOrders =>
+        validTypes.has(type)
+      );
+
+      return validParsed.length > 0 ? validParsed : [SearchTypeWbOrders.Id];
+    } else {
+      return [SearchTypeWbOrders.Id];
+    }
+  } catch (err) {
+    return [SearchTypeWbOrders.Id];
+  }
+};
+
 const WbOrders: FC = () => {
+  const { isClient } = useIsClient();
   const { scrollDirection } = useScrollDirection();
   const deferredScrollDirection = useDeferredValue(scrollDirection);
   const lastScrollDirection = useRef<ScrollDirection>(null);
@@ -143,7 +176,6 @@ const WbOrders: FC = () => {
   }
   const theme = useTheme();
   const toast = useToast();
-  const { isClient } = useIsClient();
   const formModalRef = useRef<FormikProps<InitialValues>>(null);
   const {
     isOpen: isFilterOpen,
@@ -163,33 +195,16 @@ const WbOrders: FC = () => {
     { ssr: true, fallback: false }
   );
 
-  // const searchTypeValues: Record<string, any> = {
-  //   id: 'ID',
-  //   wb_phone: 'WB_PHONE',
-  //   phone: 'PHONE',
-  //   name: 'NAME',
-  // };
   const searchQuery = searchParams.get('q') ?? '';
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const isStaleSearchQuery = searchQuery !== deferredSearchQuery;
-  const searchTypeParam = searchParams.get('search_type')
-    ? JSON.parse(searchParams.get('search_type')!)
-    : [SearchTypeWbOrders.Phone];
-  // const searchTypeValue = searchTypeValues[searchTypeParam?.toLowerCase()];
-  // const searchType: SearchTypeWbOrders =
-  //   searchTypeValue ?? ('ID' as SearchTypeWbOrders);
-  const searchType: SearchTypeWbOrders[] = searchTypeParam;
 
-  const sortByStatusValues: Record<string, any> = {
-    all: 'ALL',
-    assembled: 'ASSEMBLED',
-    not_assembled: 'NOT_ASSEMBLED',
-    rejected: 'REJECTED',
-  };
-  const sortByStatus = searchParams.get('sort_by_status')!;
-  const sortByStatusValue = sortByStatusValues[sortByStatus?.toLowerCase()];
-  const sortStatus = sortByStatusValue ?? ('ALL' as OrderStatus | 'ALL');
-  import.meta.env.DEV && console.log({ sortStatus });
+  const searchTypeParam = searchParams.get('search_type') ?? '';
+  const searchType = getSearchType(searchTypeParam);
+
+  const sortByStatusParam = searchParams.get('sort_by_status') ?? '';
+  const sortStatus = getSortByStatus(sortByStatusParam);
+
   const [isPending, startTransition] = useTransition();
 
   const {
@@ -209,6 +224,8 @@ const WbOrders: FC = () => {
     query: deferredSearchQuery,
     searchType,
   });
+
+  useEffect(() => {}, [isClient]);
 
   const { newOrder, error } = useNewWbOrderSubscription();
 
@@ -310,7 +327,7 @@ const WbOrders: FC = () => {
   }
 
   const bgUpdated = useColorModeValue('gray.200', 'gray.600');
-  const bgAdded = useColorModeValue('teal.100', 'teal.800');
+  const bgAdded = useColorModeValue('green.100', 'green.800');
 
   return (
     <>
@@ -321,8 +338,6 @@ const WbOrders: FC = () => {
           startTransition(() => {
             setSearchParams(params => {
               const query = new URLSearchParams(params.toString());
-
-              console.log(values.searchType);
 
               query.set('sort_by_status', values.sortStatus);
               query.set('search_type', JSON.stringify(values.searchType));
@@ -355,6 +370,7 @@ const WbOrders: FC = () => {
               <SimpleGrid my={2} gap={2} minChildWidth={'230px'}>
                 {isLargerThanMd && (
                   <SelectWrapper
+                    labelSize={'sm'}
                     size='sm'
                     isLoading={isPending}
                     name='sortStatus'
@@ -363,7 +379,7 @@ const WbOrders: FC = () => {
                     data={[
                       { label: 'ВСЕ', value: 'ALL' },
                       { label: 'СОБРАН', value: 'ASSEMBLED' },
-                      { label: 'НЕ СОБРАН', value: 'NOT_ASSEMBLED' },
+                      { label: 'НЕСОБРАН', value: 'NOT_ASSEMBLED' },
                       { label: 'ОТКЛОНЕН', value: 'REJECTED' },
                     ]}
                   />
@@ -440,7 +456,7 @@ const WbOrders: FC = () => {
         )}
       </Formik>
 
-      {isPendingInfinite ? (
+      {isStaleSearchQuery || isPendingInfinite ? (
         <TableContainer>
           <Table variant='simple' size='sm'>
             <Thead>
@@ -458,7 +474,7 @@ const WbOrders: FC = () => {
             </Thead>
 
             <Tbody>
-              {Array.from({ length: 30 }).map((_, i) => (
+              {Array.from({ length: 8 }).map((_, i) => (
                 <Tr key={i}>
                   <Td isNumeric>
                     <Skeleton height='20px' />
@@ -698,7 +714,7 @@ const WbOrders: FC = () => {
           </Table>
         </TableContainer>
       )}
-      <Modal size='xl' isOpen={isEditOpen} onClose={handleEditClose} isCentered>
+      <Modal size='xl' isOpen={isEditOpen} onClose={handleEditClose}>
         <ModalOverlay />
 
         <ModalContent>
@@ -828,7 +844,10 @@ const WbOrders: FC = () => {
                       const query = new URLSearchParams(params.toString());
 
                       query.set('sort_by_status', values.sortStatus);
-                      query.set('search_type', JSON.stringify(values.searchType));
+                      query.set(
+                        'search_type',
+                        JSON.stringify(values.searchType)
+                      );
 
                       return query;
                     });
@@ -848,7 +867,7 @@ const WbOrders: FC = () => {
                           data={[
                             { label: 'ВСЕ', value: 'ALL' },
                             { label: 'СОБРАН', value: 'ASSEMBLED' },
-                            { label: 'НЕ СОБРАН', value: 'NOT_ASSEMBLED' },
+                            { label: 'НЕСОБРАН', value: 'NOT_ASSEMBLED' },
                             { label: 'ОТКЛОНЕН', value: 'REJECTED' },
                           ]}
                         />

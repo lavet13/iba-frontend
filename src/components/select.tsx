@@ -9,6 +9,7 @@ import {
   Box,
   Spinner,
   Flex,
+  ResponsiveValue,
 } from '@chakra-ui/react';
 
 import { Select as ChakraSelect } from 'chakra-react-select';
@@ -21,6 +22,7 @@ import type {
 export type SelectProps = {
   name: string;
   label?: string;
+  labelSize?: ResponsiveValue<string>;
   placeholder?: string;
   isRequired?: boolean;
   id?: string;
@@ -30,7 +32,7 @@ export type SelectProps = {
 } & Partial<ChakraSelectProps>;
 
 const Select: FC<SelectProps> = memo(
-  ({ name, label, data, isGroup = false, isLoading, ...props }) => {
+  ({ name, label, labelSize, data, isGroup = false, isLoading, ...props }) => {
     // field { name, value, onChange, onBlur }
     // meta { value, error, touched, initialValue, initialError, initialTouched }
     // helpers { setValue, setTouched, setError }
@@ -121,7 +123,7 @@ const Select: FC<SelectProps> = memo(
               justifyContent='space-between'
             >
               {label && (
-                <FormLabel htmlFor={props.id || name}>{label}</FormLabel>
+                <FormLabel fontSize={labelSize} htmlFor={props.id || name}>{label}</FormLabel>
               )}
 
               <ChakraSelect

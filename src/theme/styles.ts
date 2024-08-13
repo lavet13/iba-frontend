@@ -1,8 +1,18 @@
 import { Styles } from '@chakra-ui/theme-tools';
+import { cssVar } from '@chakra-ui/react';
+
+const $chakraColorsScrollbarThumbBg = cssVar(
+  'chakra-colors-scrollbar-thumb-bg'
+);
+
 
 const styles: Styles = {
   global: _ => ({
     html: { fontSize: { base: 'lg', sm: 'xl' } },
+    '*': {
+      scrollbarWidth: 'thin',
+      scrollbarColor: `${$chakraColorsScrollbarThumbBg.reference} transparent`,
+    },
     '*::-webkit-scrollbar': {
       padding: '2px',
       width: '10px',
