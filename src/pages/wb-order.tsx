@@ -121,13 +121,12 @@ const WbOrder: FC = () => {
   };
 
   const { mutateAsync: createOrder, data } = useCreateWbOrder();
-  console.log({ qrCodeUrl });
 
   useEffect(() => {
     if (data?.saveWbOrder.qrCodeFile) {
       const type = data.saveWbOrder.qrCodeFile.type as string;
       const buffer = data.saveWbOrder.qrCodeFile.buffer;
-      console.log({ type, buffer });
+      import.meta.env.DEV && console.log({ type, buffer });
 
       if (typeof buffer === 'object' && 'data' in buffer) {
         const uint8Array = new Uint8Array(buffer.data);
@@ -181,18 +180,6 @@ const WbOrder: FC = () => {
       actions.setStatus('submitted');
       console.log({ createdOrder });
 
-      if (toastIdRef.current) {
-        toast.close(toastIdRef.current);
-      }
-
-      toastIdRef.current = toast({
-        title: 'Wildberries',
-        description: 'Заявка успешно оформлена!',
-        status: 'success',
-        duration: 5000,
-        isClosable: true,
-      });
-
       setIsReset(true);
     } catch (error: unknown) {
       if (isGraphQLRequestError(error)) {
@@ -237,8 +224,6 @@ const WbOrder: FC = () => {
           innerRef={formRef}
         >
           {({ isSubmitting }) => {
-            import.meta.env.DEV && console.log({ isSubmitting });
-
             return (
               <Form>
                 <TextInput

@@ -72,7 +72,7 @@ export const useInfiniteWbOrders = ({
       } catch (error) {
         if (
           isGraphQLRequestError(error) &&
-          error.response.errors[0].extensions.code === 'UNAUTHENTICATED'
+          error.response.errors?.[0].extensions.code === 'UNAUTHENTICATED'
         ) {
           navigate('/');
         }

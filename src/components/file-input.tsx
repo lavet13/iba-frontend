@@ -22,7 +22,8 @@ import {
   IconButton,
   DarkMode,
 } from '@chakra-ui/react';
-import { HiOutlinePaperClip, HiX } from 'react-icons/hi';
+import { CloseIcon } from '@chakra-ui/icons';
+import { HiOutlinePaperClip } from 'react-icons/hi';
 import isEqual from 'react-fast-compare';
 
 type FileInputProps = {
@@ -172,7 +173,7 @@ const FileInput: FC<FileInputProps> = memo(
                     <Flex
                       align={'center'}
                       justify={'center'}
-                      p={1}
+                      p={2}
                       rounded={'md'}
                       _hover={{ bg: 'blackAlpha.100' }}
                       _dark={{ _hover: { bg: 'whiteAlpha.100' } }}
@@ -180,7 +181,7 @@ const FileInput: FC<FileInputProps> = memo(
                       transitionDuration={'fast'}
                       transitionProperty='common'
                     >
-                      <Icon as={HiX} boxSize={5} />
+                      <CloseIcon boxSize={3} />{' '}
                     </Flex>
                   </InputRightElement>
                 )}
@@ -206,8 +207,8 @@ const FileInput: FC<FileInputProps> = memo(
                       <DarkMode>
                         <IconButton
                           aria-label='Delete Image'
-                          variant='ghost'
-                          icon={<Icon as={HiX} boxSize={3} />}
+                          variant='solid'
+                          icon={<CloseIcon boxSize={2.5} />}
                           size='xs'
                           position='absolute'
                           top='1'

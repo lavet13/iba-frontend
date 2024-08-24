@@ -62,7 +62,7 @@ async function configDev(app: Express) {
 }
 
 const isProd = process.env.NODE_ENV === 'production';
-const port = process.env.PORT || (isProd ? 4173 : 5173);
+const port = process.env.PORT;
 const app = express();
 
 const config = isProd ? configProd : configDev;

@@ -28,7 +28,7 @@ export const useNewWbOrderSubscription = () => {
 
   useEffect(() => {
     const subscriptionQuery = print(NewWbOrderSubscriptionDocument);
-    const url = new URL(`${import.meta.env.VITE_GRAPHQL_URI}`);
+    const url = new URL(`${import.meta.env.VITE_GRAPHQL_URI}`, window.location.origin);
     let ctrl: AbortController | null = null;
 
     const startEventSource = async () => {

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx server",
-    "build": "rm -rf dist && yarn run build:client && yarn run build:server && yarn run preview",
+    "build": "rm -rf dist && yarn run build:client && yarn run build:server",
     "build:client": "vite build --outDir dist/client --ssrManifest",
     "build:server": "vite build --outDir dist/server --ssr ./entry-server.tsx",
     "preview": "cross-env NODE_ENV=production tsx --no-warnings ./server.ts",

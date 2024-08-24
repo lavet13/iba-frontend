@@ -44,6 +44,8 @@ import {
   DrawerContent,
   DrawerHeader,
   DrawerBody,
+  CloseButton,
+  Flex,
 } from '@chakra-ui/react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -80,6 +82,7 @@ import { HiArrowLongLeft } from 'react-icons/hi2';
 import useIsClient from '../../utils/ssr/use-is-client';
 import { useScrollDirection } from 'react-use-scroll-direction';
 import { ScrollDirection } from 'react-use-scroll-direction/dist/useScrollDirection';
+import { CloseIcon } from '@chakra-ui/icons';
 
 type HandleSubmitProps = (
   values: InitialValues,
@@ -138,7 +141,7 @@ const getSortByStatus = (sortByStatusParam: string): OrderStatus | 'ALL' => {
 
   const upperCaseParam = sortByStatusParam.toUpperCase();
 
-  if(validStatuses.has(upperCaseParam as OrderStatus)) {
+  if (validStatuses.has(upperCaseParam as OrderStatus)) {
     return upperCaseParam as OrderStatus;
   }
 
@@ -157,12 +160,14 @@ const getSearchType = (searchParamValue: string) => {
         validTypes.has(type)
       );
 
-      return validParsed.length > 0 ? validParsed : [SearchTypeWbOrders.Id];
+      return validParsed.length > 0
+        ? validParsed
+        : Object.values(SearchTypeWbOrders);
     } else {
-      return [SearchTypeWbOrders.Id];
+      return Object.values(SearchTypeWbOrders);
     }
   } catch (err) {
-    return [SearchTypeWbOrders.Id];
+    return Object.values(SearchTypeWbOrders);
   }
 };
 
@@ -416,6 +421,7 @@ const WbOrders: FC = () => {
                         )}
                       </InputLeftElement>
                       <Input
+                        pr={!isLargerThanMd ? '3.35rem' : undefined}
                         value={searchQuery}
                         onChange={e => {
                           setSearchParams(params => {
@@ -434,18 +440,39 @@ const WbOrders: FC = () => {
                         }}
                         placeholder={'Искать заявку...'}
                       />
-                      {!isLargerThanMd && (
-                        <InputRightElement>
+
+                      <InputRightElement
+                        gap={0.5}
+                        pr={'0.2rem'}
+                        width={!isLargerThanMd ? 'auto' : '2rem'}
+                      >
+                        {searchQuery.length !== 0 && (
                           <IconButton
-                            h='100%'
-                            variant='link'
-                            size='sm'
+                            variant='ghost'
+                            size='xs'
+                            aria-label='clear search'
+                            onClick={() =>
+                              setSearchParams(params => {
+                                const query = new URLSearchParams(params);
+
+                                query.delete('q');
+
+                                return query;
+                              })
+                            }
+                            icon={<CloseIcon boxSize={2.5} />}
+                          />
+                        )}
+                        {!isLargerThanMd && (
+                          <IconButton
+                            variant='ghost'
+                            size='xs'
                             aria-label='filter orders'
                             onClick={onFilterOpen}
-                            icon={<Icon as={HiFilter} boxSize={5} />}
+                            icon={<Icon as={HiFilter} boxSize={4} />}
                           />
-                        </InputRightElement>
-                      )}
+                        )}
+                      </InputRightElement>
                     </InputGroup>
                   </>
                 )}
@@ -593,17 +620,14 @@ const WbOrders: FC = () => {
                           <LinkBox as={Td}>
                             {o.qrCode ? (
                               <LinkOverlay
-                                href={`${
-                                  import.meta.env.VITE_API_URI
-                                }/assets/qr-codes/${o.qrCode}`}
+                                href={`/assets/qr-codes/${o.qrCode}`}
                                 target={'_blank'}
                                 rel='noopener noreferrer'
                               >
                                 <Image
                                   width='60px'
-                                  src={`${
-                                    import.meta.env.VITE_API_URI
-                                  }/assets/qr-codes/${o.qrCode}`}
+                                  rounded='sm'
+                                  src={`/assets/qr-codes/${o.qrCode}`}
                                   fallbackSrc='/images/no-preview.webp'
                                   alt='qr-code'
                                 />
@@ -612,6 +636,7 @@ const WbOrders: FC = () => {
                               <Image
                                 width='60px'
                                 src={`/images/no-preview.webp`}
+                                rounded='sm'
                                 alt='qr-code'
                               />
                             )}
@@ -776,9 +801,7 @@ const WbOrders: FC = () => {
                             as={Link}
                             size='lg'
                             variant='outline'
-                            href={`${
-                              import.meta.env.VITE_API_URI
-                            }/assets/qr-codes/${
+                            href={`/assets/qr-codes/${
                               wbOrderByIdResult?.wbOrderById?.qrCode ?? ''
                             }`}
                             target='_blank'
@@ -827,8 +850,9 @@ const WbOrders: FC = () => {
               borderBottomWidth='1px'
             >
               <IconButton
+                size={'md'}
                 onClick={onFilterClose}
-                variant={'link'}
+                variant={'ghost'}
                 aria-label='close filters'
                 icon={<Icon as={HiArrowLeft} boxSize='5' />}
               />
